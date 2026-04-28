@@ -23,13 +23,10 @@ def get_embeddings() -> HuggingFaceEmbeddings:
 
 def build_vectorstore(chunks: List[Document]) -> FAISS:
     print(f"\n🔧 벡터 DB 구축 시작 (저장 경로: {VECTORSTORE_DIR})")
-
     embeddings = get_embeddings()
     vectorstore = FAISS.from_documents(chunks, embeddings)
-
     Path(VECTORSTORE_DIR).mkdir(parents=True, exist_ok=True)
     vectorstore.save_local(FAISS_INDEX_PATH)
-
     print(f"✅ 벡터 DB 구축 완료 ({len(chunks)}개 청크 임베딩)")
     return vectorstore
 
