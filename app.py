@@ -450,8 +450,7 @@ def process_question(question: str):
                 error_msg = "⏳ Groq 사용량 한도 초과입니다. 1~2분 후 다시 시도하거나, 일일 한도 초과 시 내일 오전 9시(한국시간) 이후 이용 가능합니다."
                 st.session_state.question_count -= 1
             else:
-                error_msg = f"❌ 오류 발생: {e}"
-            # 에러 발생 시 사용자 메시지도 제거
+                error_msg = f"❌ 오류 발생 (디버그): {type(e).__name__}: {e}"
             st.session_state.messages.pop()
 
     # 에러 메시지를 세션에 저장
