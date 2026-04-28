@@ -1,6 +1,7 @@
 """
 디롱이(SecureGuide) - Streamlit 웹 앱 (라이트 테마 + KDIA 로고)
 """
+import re
 import os
 import time
 import base64
@@ -345,7 +346,10 @@ def render_messages():
             )
         else:
             result = msg.get("result", {})
-            answer = msg["content"].replace("\n", "<br>")
+            clean = msg["content"]
+            # 답변에 섞인 div, span 같은 잘린 태그 제거
+            clean = re.sub(r'</?(?:div|span|p)[^>]*>', '', clean)
+            answer = clean.replace("\n", "<br>")
             st.markdown(
                 f'''<div class="msg-bot">
                     {avatar}
