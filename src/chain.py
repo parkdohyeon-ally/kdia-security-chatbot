@@ -55,7 +55,7 @@ class SecurityGuideChain:
             response = self.llm.invoke([system_message, human_message])
         except Exception as e:
             err = str(e).lower()
-            if "rate" in err or "429" in err or "limit" in err:
+            if any(k in err for k in ["rate", "429", "limit", "quota", "exceeded"]):
                 raise RuntimeError("RATE_LIMIT")
             raise
 
