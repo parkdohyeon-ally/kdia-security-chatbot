@@ -337,7 +337,8 @@ def render_messages():
             )
         else:
             result = msg.get("result", {})
-            answer = msg["content"].replace("\n", "<br>")
+            import html
+            answer = html.escape(mag["content"]).replace("\n", "<br>")
             st.markdown(
                 f'''<div class="msg-bot">
                     {avatar}
