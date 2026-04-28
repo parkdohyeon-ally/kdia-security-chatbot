@@ -32,17 +32,15 @@ class SecurityGuideChain:
             model=LLM_MODEL,
             temperature=LLM_TEMPERATURE,
             max_tokens=800,
-            api_key=os.environ.get("GROQ_API_KEY"),
+            api_key=GROQ_API_KEY,
         )
         print("✅ 초기화 완료\n")
 
     def invoke(self, question: str) -> Dict[str, Any]:
         classification: QueryClassification = classify_query(question)
         query_type_label = QUERY_TYPE_LABELS[classification.type]
-
         documents: List[Document] = retrieve(self.vectorstore, question, classification)
         context = format_context(documents)
-
         system_message = SystemMessage(
             content=SYSTEM_PROMPT.format(
                 context=context,
@@ -50,7 +48,6 @@ class SecurityGuideChain:
             )
         )
         human_message = HumanMessage(content=HUMAN_PROMPT.format(question=question))
-
         try:
             response = self.llm.invoke([system_message, human_message])
         except Exception as e:
@@ -58,7 +55,6 @@ class SecurityGuideChain:
             if any(k in err for k in ["rate", "429", "limit", "quota", "exceeded"]):
                 raise RuntimeError("RATE_LIMIT")
             raise
-
         return {
             "answer": response.content,
             "query_type": classification.type,
