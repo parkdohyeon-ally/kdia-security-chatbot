@@ -4,8 +4,11 @@ langchain-groq
 langchain-community
 langchain-huggingface
 langchain-chroma
+chromadb==0.5.23
 sentence-transformers
-chromadb
 pypdf
 tiktoken
 python-dotenv
+protobuf==4.25.3
+opentelemetry-sdk==1.24.0
+opentelemetry-exporter-otlp-proto-grpc==1.24.0
