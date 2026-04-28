@@ -328,7 +328,6 @@ def render_sources(docs: list) -> str:
 
 
 def render_messages():
-    def render_messages():
     # 에러 메시지 표시
     if "last_error" in st.session_state:
         err = st.session_state["last_error"]
@@ -337,8 +336,6 @@ def render_messages():
         else:
             st.markdown(f'<div class="err-box">{err}</div>', unsafe_allow_html=True)
 
-    for msg in st.session_state.messages:
-        # ... 기존 코드 그대로 ...
     avatar = f'<div class="avatar">{logo_img_tag(26)}</div>'
     for msg in st.session_state.messages:
         if msg["role"] == "user":
@@ -348,8 +345,7 @@ def render_messages():
             )
         else:
             result = msg.get("result", {})
-            import html
-            answer = html.escape(mag["content"]).replace("\n", "<br>")
+            answer = msg["content"].replace("\n", "<br>")
             st.markdown(
                 f'''<div class="msg-bot">
                     {avatar}
