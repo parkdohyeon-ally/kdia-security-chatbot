@@ -23,7 +23,7 @@ VECTORSTORE_DIR = BASE_DIR / "data" / "vectorstore"
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 # === 모델 설정 ===
-LLM_MODEL = "llama-3.1-8b-instant"
+LLM_MODEL = "llama-3.3-70b-versatile"
 
 # HuggingFace 한국어 임베딩 모델 (무료, 로컬 실행)
 EMBEDDING_MODEL ="jhgan/ko-sroberta-multitask"
