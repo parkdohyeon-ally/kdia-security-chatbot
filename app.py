@@ -346,9 +346,9 @@ def render_messages():
             )
         else:
             result = msg.get("result", {})
-            clean = msg["content"]
-            # 답변에 섞인 div, span 같은 잘린 태그 제거
-            clean = re.sub(r'</?(?:div|span|p)[^>]*>', '', clean)
+            clean = re.sub(r'</?(?:div|span|p|br)[^>]*>', '', msg["content"])
+            # 페이지 자리표시자 제거
+            clean = clean.replace("p.XX", "").replace("PART X", "").replace("p.X", "")
             answer = clean.replace("\n", "<br>")
             st.markdown(
                 f'''<div class="msg-bot">
