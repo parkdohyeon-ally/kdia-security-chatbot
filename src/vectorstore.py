@@ -1,24 +1,19 @@
 """
-벡터 DB(ChromaDB) 관리 모듈
-- 신규 구축 (build_vectorstore)
-- 기존 로드 (load_vectorstore)
+벡터 DB(FAISS) 관리 모듈
 """
 from typing import List
+from pathlib import Path
 
-from langchain_chroma import Chroma
+from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.documents import Document
 
-from config import (
-    VECTORSTORE_DIR,
-    EMBEDDING_MODEL,
-)
+from config import VECTORSTORE_DIR, EMBEDDING_MODEL
 
-COLLECTION_NAME = "security_guides"
+FAISS_INDEX_PATH = str(VECTORSTORE_DIR)
 
 
 def get_embeddings() -> HuggingFaceEmbeddings:
-    """임베딩 모델 인스턴스 생성 (로컬 무료 실행)"""
     return HuggingFaceEmbeddings(
         model_name=EMBEDDING_MODEL,
         model_kwargs={"device": "cpu"},
@@ -26,31 +21,24 @@ def get_embeddings() -> HuggingFaceEmbeddings:
     )
 
 
-def build_vectorstore(chunks: List[Document]) -> Chroma:
-    """청크 리스트로부터 벡터 DB를 신규 구축합니다."""
+def build_vectorstore(chunks: List[Document]) -> FAISS:
     print(f"\n🔧 벡터 DB 구축 시작 (저장 경로: {VECTORSTORE_DIR})")
 
     embeddings = get_embeddings()
+    vectorstore = FAISS.from_documents(chunks, embeddings)
 
-    vectorstore = Chroma.from_documents(
-        documents=chunks,
-        embedding=embeddings,
-        collection_name=COLLECTION_NAME,
-        persist_directory=str(VECTORSTORE_DIR),
-    )
+    Path(VECTORSTORE_DIR).mkdir(parents=True, exist_ok=True)
+    vectorstore.save_local(FAISS_INDEX_PATH)
 
     print(f"✅ 벡터 DB 구축 완료 ({len(chunks)}개 청크 임베딩)")
     return vectorstore
 
 
-def load_vectorstore() -> Chroma:
-    """기존 구축된 벡터 DB를 로드합니다."""
+def load_vectorstore() -> FAISS:
     embeddings = get_embeddings()
-
-    vectorstore = Chroma(
-        collection_name=COLLECTION_NAME,
-        embedding_function=embeddings,
-        persist_directory=str(VECTORSTORE_DIR),
+    vectorstore = FAISS.load_local(
+        FAISS_INDEX_PATH,
+        embeddings,
+        allow_dangerous_deserialization=True,
     )
-
     return vectorstore
