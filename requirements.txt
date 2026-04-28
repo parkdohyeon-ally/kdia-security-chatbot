@@ -3,7 +3,9 @@ langchain
 langchain-groq
 langchain-community
 langchain-huggingface
+langchain-chroma
 sentence-transformers
 chromadb
 pypdf
 tiktoken
+python-dotenv
