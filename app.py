@@ -328,6 +328,17 @@ def render_sources(docs: list) -> str:
 
 
 def render_messages():
+    def render_messages():
+    # 에러 메시지 표시
+    if "last_error" in st.session_state:
+        err = st.session_state["last_error"]
+        if "한도" in err or "⏳" in err:
+            st.markdown(f'<div class="rate-warn">{err}</div>', unsafe_allow_html=True)
+        else:
+            st.markdown(f'<div class="err-box">{err}</div>', unsafe_allow_html=True)
+
+    for msg in st.session_state.messages:
+        # ... 기존 코드 그대로 ...
     avatar = f'<div class="avatar">{logo_img_tag(26)}</div>'
     for msg in st.session_state.messages:
         if msg["role"] == "user":
@@ -426,6 +437,9 @@ def process_question(question: str):
     st.session_state.question_count += 1
     st.session_state.last_request = time.time()
 
+    # 에러 메시지를 세션에 저장해서 rerun 후에도 표시
+    error_msg = None
+
     with st.spinner("🔍 가이드를 검색하고 있습니다..."):
         try:
             result = st.session_state.chain.invoke(question)
@@ -434,17 +448,23 @@ def process_question(question: str):
                 "content": result["answer"],
                 "result": result,
             })
-        except RuntimeError as e:
-            if "RATE_LIMIT" in str(e):
-                st.markdown('<div class="rate-warn">⏳ Groq 서버 사용량이 많습니다. 1~2분 후 다시 시도해주세요.</div>', unsafe_allow_html=True)
+        except Exception as e:
+            err = str(e).lower()
+            if any(k in err for k in ["rate", "429", "limit", "quota", "exceeded"]):
+                error_msg = "⏳ Groq 사용량 한도 초과입니다. 1~2분 후 다시 시도하거나, 일일 한도 초과 시 내일 오전 9시(한국시간) 이후 이용 가능합니다."
                 st.session_state.question_count -= 1
             else:
-                st.markdown(f'<div class="err-box">❌ 오류 발생: {e}</div>', unsafe_allow_html=True)
-        except Exception as e:
-            st.markdown(f'<div class="err-box">❌ 오류 발생: {e}</div>', unsafe_allow_html=True)
+                error_msg = f"❌ 오류 발생: {e}"
+            # 에러 발생 시 사용자 메시지도 제거
+            st.session_state.messages.pop()
+
+    # 에러 메시지를 세션에 저장
+    if error_msg:
+        st.session_state["last_error"] = error_msg
+    else:
+        st.session_state.pop("last_error", None)
 
     st.rerun()
-
 
 def main():
     init_session()
