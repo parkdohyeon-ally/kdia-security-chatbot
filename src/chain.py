@@ -31,7 +31,7 @@ class SecurityGuideChain:
         self.llm = ChatGroq(
             model=LLM_MODEL,
             temperature=LLM_TEMPERATURE,
-            max_tokens=800,
+            max_tokens=1200,
             api_key=GROQ_API_KEY,
         )
         print("✅ 초기화 완료\n")
