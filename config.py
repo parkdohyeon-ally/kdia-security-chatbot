@@ -67,7 +67,7 @@ GUIDE_METADATA = {
         "scope": "디스플레이 산업기술의 해외 수출·이전·M&A 및 해외사업장 보안관리",
         "structure_axis": "해외사업장 보안관리 6개 영역 (기술정보/기술보호지원/외부위험/시설/인력/업무환경)",
         "content_pattern": "보안위험사례(상/중/하) → 보안관리방안(필수/선택)",
-        "is_current": True,  # 3기가 현재 최신
+        "is_current": False,  # 3기가 현재 최신
     },
 }
 
