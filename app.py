@@ -415,7 +415,7 @@ def render_sidebar():
 # 3기
         st.markdown("""
         <div class="guide-card current">
-            <div class="gen">3기 · 2024.09 ★ 현행</div>
+            <div class="gen">3기 · 2024.09</div>
             <div class="title">수출 보안 가이드</div>
             <div class="year">해외사업장 · 수출절차</div>
         </div>
