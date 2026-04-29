@@ -383,7 +383,7 @@ def render_sidebar():
         </div>
         """, unsafe_allow_html=True)
 
-        with open("data/pdfs/1기/_1기__디스플레이산업_실무보안가이드_FN.pdf", "rb") as f:
+        with open("data/pdfs/1기/[1기] 디스플레이산업 실무보안가이드_FN.pdf", "rb") as f:
             st.download_button(
             label="📥 1기 가이드 다운로드",
             data=f,
@@ -402,7 +402,7 @@ def render_sidebar():
         </div>
         """, unsafe_allow_html=True)
 
-        with open("data/pdfs/2기/_2기__디스플레이산업_핵심인력보안가이드_FN.pdf", "rb") as f:
+        with open("data/pdfs/2기/[2기] 디스플레이산업 핵심인력보안가이드_FN.pdf", "rb") as f:
             st.download_button(
             label="📥 2기 가이드 다운로드",
             data=f,
@@ -421,7 +421,7 @@ def render_sidebar():
         </div>
         """, unsafe_allow_html=True)
 
-        with open("data/pdfs/3기/_3기__디스플레이산업_수출보안가이드_FN_1_.pdf", "rb") as f:
+        with open("data/pdfs/3기/[3기] 디스플레이산업 수출보안가이드_FN.pdf", "rb") as f:
             st.download_button(
             label="📥 3기 가이드 다운로드",
             data=f,
