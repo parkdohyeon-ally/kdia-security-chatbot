@@ -373,17 +373,47 @@ def render_sidebar():
                 unsafe_allow_html=True,
             )
         st.markdown("### 📚 가이드 시리즈")
+
+# 1기
         st.markdown("""
         <div class="guide-card">
             <div class="gen">1기 · 2019.08</div>
             <div class="title">디스플레이산업 실무 보안가이드</div>
             <div class="year">장비 / 부품·소재 기업용</div>
         </div>
+        """, unsafe_allow_html=True)
+
+        with open("data/pdfs/1기/_1기__디스플레이산업_실무보안가이드_FN.pdf", "rb") as f:
+            st.download_button(
+            label="📥 1기 가이드 다운로드",
+            data=f,
+            file_name="1기_디스플레이산업_실무보안가이드.pdf",
+            mime="application/pdf",
+            use_container_width=True,
+            key="dl_1"
+            )
+
+# 2기
+        st.markdown("""
         <div class="guide-card">
             <div class="gen">2기 · 2022.03</div>
             <div class="title">핵심인력 보안가이드</div>
             <div class="year">채용 / 재직 / 퇴사 전주기</div>
         </div>
+        """, unsafe_allow_html=True)
+
+        with open("data/pdfs/2기/_2기__디스플레이산업_핵심인력보안가이드_FN.pdf", "rb") as f:
+            st.download_button(
+            label="📥 2기 가이드 다운로드",
+            data=f,
+            file_name="2기_디스플레이산업_핵심인력보안가이드.pdf",
+            mime="application/pdf",
+            use_container_width=True,
+            key="dl_2"
+            )
+
+# 3기
+        st.markdown("""
         <div class="guide-card current">
             <div class="gen">3기 · 2024.09 ★ 현행</div>
             <div class="title">수출 보안 가이드</div>
@@ -391,6 +421,15 @@ def render_sidebar():
         </div>
         """, unsafe_allow_html=True)
 
+        with open("data/pdfs/3기/_3기__디스플레이산업_수출보안가이드_FN_1_.pdf", "rb") as f:
+            st.download_button(
+            label="📥 3기 가이드 다운로드",
+            data=f,
+            file_name="3기_디스플레이산업_수출보안가이드.pdf",
+            mime="application/pdf",
+            use_container_width=True,
+            key="dl_3"
+            )
         st.markdown("---")
 
         count = st.session_state.get("question_count", 0)
