@@ -266,28 +266,25 @@ def _enrich_gen3_pairs(
 
     return enriched
 
+
 def _enrich_appendix(
     vectorstore: FAISS, results: List[Document]
 ) -> List[Document]:
     """
-    검색된 청크와 관련된 별첨(법령) 청크를 추가 검색.
-    3기 Ⅲ장 절차 청크가 있으면 Ⅵ_부록의 관련 법령 청크도 함께 가져옴.
+    별첨(법령) 청크 보강 — 옵션 B 적용.
+    3기 Ⅲ장 절차 질문에만 별첨 검색 (일반 질문은 건너뜀).
+    2기 핵심인력 항목 질문에도 관련 별첨 보강.
     """
     enriched = list(results)
     seen_ids = {id(d) for d in results}
 
-    # 검색 결과에 3기 Ⅲ장(절차) 또는 Ⅴ장(위험사례)이 있으면 별첨 추가
+    # 3기: Ⅲ장 절차 청크가 있을 때만 별첨 보강 (옵션 B — has_gen3_main 제거)
     has_gen3_procedure = any(
         d.metadata.get("gen3_chapter") == "Ⅲ_보호제도절차"
         for d in results
     )
-    has_gen3_main = any(
-        d.metadata.get("version") == "3기"
-        for d in results
-    )
 
-    if has_gen3_procedure or has_gen3_main:
-        # 별첨(Ⅵ_부록) 청크를 질문과 관련된 키워드로 추가 검색
+    if has_gen3_procedure:
         for doc in results:
             if doc.metadata.get("version") != "3기":
                 continue
@@ -311,7 +308,7 @@ def _enrich_appendix(
             except Exception:
                 continue
 
-    # 2기에서도 별첨 보강
+    # 2기: 핵심인력 항목 질문에 별첨 보강
     has_gen2 = any(d.metadata.get("version") == "2기" for d in results)
     if has_gen2:
         for doc in results:
