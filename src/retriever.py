@@ -266,11 +266,85 @@ def _enrich_gen3_pairs(
 
     return enriched
 
+def _enrich_appendix(
+    vectorstore: FAISS, results: List[Document]
+) -> List[Document]:
+    """
+    검색된 청크와 관련된 별첨(법령) 청크를 추가 검색.
+    3기 Ⅲ장 절차 청크가 있으면 Ⅵ_부록의 관련 법령 청크도 함께 가져옴.
+    """
+    enriched = list(results)
+    seen_ids = {id(d) for d in results}
+
+    # 검색 결과에 3기 Ⅲ장(절차) 또는 Ⅴ장(위험사례)이 있으면 별첨 추가
+    has_gen3_procedure = any(
+        d.metadata.get("gen3_chapter") == "Ⅲ_보호제도절차"
+        for d in results
+    )
+    has_gen3_main = any(
+        d.metadata.get("version") == "3기"
+        for d in results
+    )
+
+    if has_gen3_procedure or has_gen3_main:
+        # 별첨(Ⅵ_부록) 청크를 질문과 관련된 키워드로 추가 검색
+        for doc in results:
+            if doc.metadata.get("version") != "3기":
+                continue
+            procedure = doc.metadata.get("procedure_type", "N/A")
+            if procedure == "N/A":
+                continue
+            try:
+                candidates = vectorstore.similarity_search(
+                    f"{procedure} 법률 조항 산업기술보호법", k=6
+                )
+                appendix_docs = _meta_filter(candidates, {
+                    "$and": [
+                        {"version": "3기"},
+                        {"content_type": "별첨"},
+                    ]
+                })[:2]
+                for a in appendix_docs:
+                    if id(a) not in seen_ids:
+                        enriched.append(a)
+                        seen_ids.add(id(a))
+            except Exception:
+                continue
+
+    # 2기에서도 별첨 보강
+    has_gen2 = any(d.metadata.get("version") == "2기" for d in results)
+    if has_gen2:
+        for doc in results:
+            if doc.metadata.get("version") != "2기":
+                continue
+            item = doc.metadata.get("lifecycle_item", "N/A")
+            if item == "N/A":
+                continue
+            try:
+                candidates = vectorstore.similarity_search(
+                    f"{item} 법률 조항 근거", k=6
+                )
+                appendix_docs = _meta_filter(candidates, {
+                    "$and": [
+                        {"version": "2기"},
+                        {"content_type": "별첨"},
+                    ]
+                })[:1]
+                for a in appendix_docs:
+                    if id(a) not in seen_ids:
+                        enriched.append(a)
+                        seen_ids.add(id(a))
+            except Exception:
+                continue
+
+    return enriched
+
 
 def _enrich_all(vectorstore: FAISS, results: List[Document]) -> List[Document]:
     results = _enrich_gen1_pairs(vectorstore, results)
     results = _enrich_gen2_examples(vectorstore, results)
     results = _enrich_gen3_pairs(vectorstore, results)
+    results = _enrich_appendix(vectorstore, results)
     return results
 
 
