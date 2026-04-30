@@ -32,7 +32,6 @@ def get_image_base64(image_path: str) -> str:
 LOGO_B64 = get_image_base64("kdia_logo.png")
 
 def logo_img_tag(size: int = 26) -> str:
-    """아바타용 KDIA 로고 img 태그. 파일 없으면 fallback 텍스트."""
     if LOGO_B64:
         return f'<img src="data:image/png;base64,{LOGO_B64}" style="width:{size}px;height:{size}px;object-fit:contain;">'
     return "🛡️"
@@ -51,24 +50,15 @@ html, body, [data-testid="stAppViewContainer"] {
     background-color: #ffffff;
     border-right: 1px solid #e2e6f0;
 }
-
-/* 헤더 */
 .app-header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
+    display: flex; align-items: center; gap: 16px;
     padding: 8px 0 24px 0;
-    border-bottom: 2px solid #e2e6f0;
-    margin-bottom: 24px;
+    border-bottom: 2px solid #e2e6f0; margin-bottom: 24px;
 }
 .app-header .logo-wrap {
-    background: #ffffff;
-    border: 1px solid #e2e6f0;
-    border-radius: 10px;
-    padding: 8px 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background: #ffffff; border: 1px solid #e2e6f0;
+    border-radius: 10px; padding: 8px 12px;
+    display: flex; align-items: center; justify-content: center;
     box-shadow: 0 1px 6px rgba(0,0,0,0.07);
 }
 .app-header h1 {
@@ -79,8 +69,6 @@ html, body, [data-testid="stAppViewContainer"] {
     font-size: 0.78rem; color: #8891b0;
     margin-top: 2px; font-weight: 300;
 }
-
-/* 사용자 말풍선 */
 .msg-user { display: flex; justify-content: flex-end; margin: 12px 0; }
 .msg-user .bubble {
     background: #1e40af; color: #ffffff;
@@ -89,21 +77,16 @@ html, body, [data-testid="stAppViewContainer"] {
     font-size: 0.93rem; line-height: 1.6;
     box-shadow: 0 2px 8px rgba(30,64,175,0.18);
 }
-
-/* 봇 말풍선 */
 .msg-bot {
     display: flex; justify-content: flex-start;
     margin: 12px 0; gap: 10px; align-items: flex-start;
 }
 .msg-bot .avatar {
-    width: 38px; height: 38px;
-    background: #ffffff;
-    border: 1px solid #e2e6f0;
-    border-radius: 8px;
+    width: 38px; height: 38px; background: #ffffff;
+    border: 1px solid #e2e6f0; border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0; margin-top: 2px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    padding: 4px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08); padding: 4px;
 }
 .msg-bot .bubble {
     background: #ffffff; border: 1px solid #e2e6f0;
@@ -113,19 +96,13 @@ html, body, [data-testid="stAppViewContainer"] {
     box-shadow: 0 2px 10px rgba(0,0,0,0.06);
 }
 .msg-bot .bubble b { color: #1d4ed8; }
-
-/* 메타 태그 */
 .meta-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
 .meta-tag {
     background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8;
     border-radius: 20px; padding: 2px 10px;
     font-size: 0.72rem; font-family: 'JetBrains Mono', monospace; font-weight: 600;
 }
-.meta-tag.type {
-    background: #f0fdf4; border-color: #bbf7d0; color: #15803d;
-}
-
-/* 출처 */
+.meta-tag.type { background: #f0fdf4; border-color: #bbf7d0; color: #15803d; }
 .source-section { margin-top: 10px; border-top: 1px solid #e2e6f0; padding-top: 8px; }
 .source-toggle { font-size: 0.75rem; color: #8891b0; margin-bottom: 4px; }
 .source-item {
@@ -133,8 +110,6 @@ html, body, [data-testid="stAppViewContainer"] {
     padding: 7px 12px; margin: 3px 0;
     font-size: 0.74rem; color: #5a6480; font-family: 'JetBrains Mono', monospace;
 }
-
-/* 가이드 카드 */
 .guide-card {
     background: #f8f9fd; border: 1px solid #e2e6f0;
     border-radius: 10px; padding: 12px 14px; margin-bottom: 8px;
@@ -147,8 +122,6 @@ html, body, [data-testid="stAppViewContainer"] {
 .guide-card .year { font-size: 0.72rem; color: #8891b0; }
 .guide-card.current { background: #eff6ff; border-color: #93c5fd; }
 .guide-card.current .gen { color: #059669; }
-
-/* 사용량 바 */
 .limit-bar {
     background: #e2e6f0; border-radius: 20px;
     height: 7px; margin: 6px 0 2px 0; overflow: hidden;
@@ -160,8 +133,6 @@ html, body, [data-testid="stAppViewContainer"] {
 }
 .limit-fill.warn { background: linear-gradient(90deg, #d97706, #fbbf24); }
 .limit-fill.full { background: linear-gradient(90deg, #dc2626, #f87171); }
-
-/* 버튼 */
 .stButton > button {
     background: #f8f9fd !important; border: 1px solid #e2e6f0 !important;
     color: #3d4a6b !important; border-radius: 8px !important;
@@ -174,8 +145,6 @@ html, body, [data-testid="stAppViewContainer"] {
     border-color: #93c5fd !important; color: #1d4ed8 !important;
     background: #eff6ff !important;
 }
-
-/* 입력창 */
 [data-testid="stChatInput"] textarea {
     background: #ffffff !important; border: 1.5px solid #e2e6f0 !important;
     color: #1e2340 !important; border-radius: 12px !important;
@@ -185,8 +154,6 @@ html, body, [data-testid="stAppViewContainer"] {
     border-color: #2563eb !important;
     box-shadow: 0 0 0 3px rgba(37,99,235,0.1) !important;
 }
-
-/* 알림 박스 */
 .rate-warn {
     background: #fffbeb; border: 1px solid #fcd34d;
     border-radius: 8px; padding: 10px 14px;
@@ -197,7 +164,6 @@ html, body, [data-testid="stAppViewContainer"] {
     border-radius: 8px; padding: 10px 14px;
     color: #991b1b; font-size: 0.85rem; margin: 8px 0;
 }
-
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #f5f6fa; }
 ::-webkit-scrollbar-thumb { background: #d1d5e8; border-radius: 3px; }
@@ -239,14 +205,11 @@ def init_session():
     if st.session_state.last_date != date.today():
         st.session_state.question_count = 0
         st.session_state.last_date = date.today()
-# app.py 상단 load_chain() 함수 위에 추가
-from pathlib import Path
+
 
 def ensure_vectorstore():
-    """vectorstore가 없으면 자동으로 생성"""
     from config import VECTORSTORE_DIR, PDF_DIR
     vs_path = Path(VECTORSTORE_DIR)
-    
     if not vs_path.exists() or not any(vs_path.iterdir()):
         st.info("🔧 처음 실행입니다. 가이드를 읽어들이는 중... (3~5분 소요)")
         from src.pdf_loader import load_all_guides
@@ -259,6 +222,7 @@ def ensure_vectorstore():
         else:
             st.error("❌ PDF 파일을 찾을 수 없습니다. data/pdfs/ 폴더를 확인하세요.")
             st.stop()
+
 
 @st.cache_resource(show_spinner=False)
 def load_chain():
@@ -273,7 +237,6 @@ def render_meta_tags(result: dict) -> str:
     tags.append(f'<span class="meta-tag type">{QUERY_TYPE_LABELS.get(qtype, qtype)}</span>')
     for v in result.get("specified_versions", []):
         tags.append(f'<span class="meta-tag">{v}</span>')
-
     for prefix, keys in [
         ("1기", ["business_type", "process_gen1"]),
         ("2기", ["lifecycle_stage", "lifecycle_item"]),
@@ -282,10 +245,8 @@ def render_meta_tags(result: dict) -> str:
         parts = [result.get(k, "미지정") for k in keys if result.get(k, "미지정") != "미지정"]
         if parts:
             tags.append(f'<span class="meta-tag">{prefix} · {" / ".join(parts)}</span>')
-
     if result.get("risk_level", "미지정") != "미지정":
         tags.append(f'<span class="meta-tag">등급:{result["risk_level"]}</span>')
-
     return f'<div class="meta-row">{"".join(tags)}</div>' if tags else ""
 
 
@@ -320,7 +281,6 @@ def render_sources(docs: list) -> str:
         else:
             label = f"{v} | p.{p}"
         items.append(f'<div class="source-item">📄 {label}</div>')
-
     return (
         '<div class="source-section">'
         f'<div class="source-toggle">📚 참조 문서 {len(docs)}개</div>'
@@ -329,7 +289,6 @@ def render_sources(docs: list) -> str:
 
 
 def render_messages():
-    # 에러 메시지 표시
     if "last_error" in st.session_state:
         err = st.session_state["last_error"]
         if "한도" in err or "⏳" in err:
@@ -347,7 +306,6 @@ def render_messages():
         else:
             result = msg.get("result", {})
             clean = re.sub(r'</?(?:div|span|p|br)[^>]*>', '', msg["content"])
-            # 페이지 자리표시자 제거
             clean = clean.replace("p.XX", "").replace("PART X", "").replace("p.X", "")
             answer = clean.replace("\n", "<br>")
             st.markdown(
@@ -365,16 +323,18 @@ def render_messages():
 
 def render_sidebar():
     with st.sidebar:
-        # 사이드바 상단 로고
+        # ── 로고 ──
         if LOGO_B64:
             st.markdown(
                 f'<div style="text-align:center;padding:12px 0 4px 0;">'
                 f'<img src="data:image/png;base64,{LOGO_B64}" style="height:48px;width:auto;object-fit:contain;"></div>',
                 unsafe_allow_html=True,
             )
+
+        # ── 가이드 시리즈 ──
         st.markdown("### 📚 가이드 시리즈")
 
-# 1기
+        # 1기
         st.markdown("""
         <div class="guide-card">
             <div class="gen">1기 · 2019.08</div>
@@ -382,18 +342,20 @@ def render_sidebar():
             <div class="year">장비 / 부품·소재 기업용</div>
         </div>
         """, unsafe_allow_html=True)
+        try:
+            with open("data/pdfs/1기/[1기] 디스플레이산업 실무보안가이드_FN.pdf", "rb") as f:
+                st.download_button(
+                    label="📥 1기 가이드 다운로드",
+                    data=f,
+                    file_name="1기_디스플레이산업_실무보안가이드.pdf",
+                    mime="application/pdf",
+                    use_container_width=True,
+                    key="dl_1",
+                )
+        except FileNotFoundError:
+            st.caption("⚠️ 1기 PDF 파일 없음")
 
-        with open("data/pdfs/1기/[1기] 디스플레이산업 실무보안가이드_FN.pdf", "rb") as f:
-            st.download_button(
-            label="📥 1기 가이드 다운로드",
-            data=f,
-            file_name="1기_디스플레이산업_실무보안가이드.pdf",
-            mime="application/pdf",
-            use_container_width=True,
-            key="dl_1"
-            )
-
-# 2기
+        # 2기
         st.markdown("""
         <div class="guide-card">
             <div class="gen">2기 · 2022.03</div>
@@ -401,37 +363,43 @@ def render_sidebar():
             <div class="year">채용 / 재직 / 퇴사 전주기</div>
         </div>
         """, unsafe_allow_html=True)
+        try:
+            with open("data/pdfs/2기/[2기] 디스플레이산업 핵심인력보안가이드_FN.pdf", "rb") as f:
+                st.download_button(
+                    label="📥 2기 가이드 다운로드",
+                    data=f,
+                    file_name="2기_디스플레이산업_핵심인력보안가이드.pdf",
+                    mime="application/pdf",
+                    use_container_width=True,
+                    key="dl_2",
+                )
+        except FileNotFoundError:
+            st.caption("⚠️ 2기 PDF 파일 없음")
 
-        with open("data/pdfs/2기/[2기] 디스플레이산업 핵심인력보안가이드_FN.pdf", "rb") as f:
-            st.download_button(
-            label="📥 2기 가이드 다운로드",
-            data=f,
-            file_name="2기_디스플레이산업_핵심인력보안가이드.pdf",
-            mime="application/pdf",
-            use_container_width=True,
-            key="dl_2"
-            )
-
-# 3기
+        # 3기
         st.markdown("""
-        <div class="guide-card">
-            <div class="gen">3기 · 2024.09</div>
+        <div class="guide-card current">
+            <div class="gen">3기 · 2024.09 ★ 현행</div>
             <div class="title">수출 보안 가이드</div>
             <div class="year">해외사업장 · 수출절차</div>
         </div>
         """, unsafe_allow_html=True)
+        try:
+            with open("data/pdfs/3기/[3기] 디스플레이산업 수출보안가이드_FN.pdf", "rb") as f:
+                st.download_button(
+                    label="📥 3기 가이드 다운로드",
+                    data=f,
+                    file_name="3기_디스플레이산업_수출보안가이드.pdf",
+                    mime="application/pdf",
+                    use_container_width=True,
+                    key="dl_3",
+                )
+        except FileNotFoundError:
+            st.caption("⚠️ 3기 PDF 파일 없음")
 
-        with open("data/pdfs/3기/[3기] 디스플레이산업 수출보안가이드_FN.pdf", "rb") as f:
-            st.download_button(
-            label="📥 3기 가이드 다운로드",
-            data=f,
-            file_name="3기_디스플레이산업_수출보안가이드.pdf",
-            mime="application/pdf",
-            use_container_width=True,
-            key="dl_3"
-            )
         st.markdown("---")
 
+        # ── 사용량 ──
         count = st.session_state.get("question_count", 0)
         pct = int(count / DAILY_LIMIT * 100)
         fill_class = "full" if pct >= 100 else "warn" if pct >= 70 else ""
@@ -443,15 +411,56 @@ def render_sidebar():
         )
 
         st.markdown("---")
+
+        # ── 추천 질문 ──
         st.markdown("### 💡 추천 질문")
         for q in SAMPLE_QUESTIONS:
             if st.button(q, key=f"sq_{q}"):
                 st.session_state.pending_question = q
 
         st.markdown("---")
+
+        # ── 대화 초기화 ──
         if st.button("🗑️ 대화 초기화"):
             st.session_state.messages = []
             st.rerun()
+
+        # ── 관리자 진단 (사이드바 안에 위치) ──
+        st.markdown("---")
+        with st.expander("🔧 관리자 진단"):
+            if st.button("별첨 청크 확인", key="check_appendix"):
+                vs = st.session_state.chain.vectorstore if st.session_state.chain else None
+                if not vs:
+                    st.warning("챗봇이 초기화되지 않았습니다.")
+                else:
+                    with st.spinner("검색 중..."):
+                        results = vs.similarity_search(
+                            "산업기술보호법 별첨 산업기술보호지침", k=30
+                        )
+                    appendix_docs = [
+                        d for d in results
+                        if d.metadata.get("content_type") == "별첨"
+                    ]
+
+                    st.markdown(f"**전체 검색 결과:** {len(results)}개")
+                    st.markdown(f"**별첨 청크 수:** {len(appendix_docs)}개")
+
+                    if appendix_docs:
+                        for i, doc in enumerate(appendix_docs, 1):
+                            v = doc.metadata.get("version", "?")
+                            page = doc.metadata.get("page", "?")
+                            chapter = doc.metadata.get("gen3_chapter", "")
+                            text_preview = doc.page_content[:150].replace("\n", " ")
+                            st.markdown(
+                                f"**{i}. [{v}기]** p.{page} {chapter}  \n"
+                                f"`{text_preview}...`"
+                            )
+                    else:
+                        st.error("❌ 별첨 청크가 검색되지 않습니다.")
+                        st.info(
+                            "PDF에서 별첨 텍스트가 추출되지 않았거나 "
+                            "패턴이 다를 수 있습니다."
+                        )
 
         st.markdown(
             '<div style="font-size:0.7rem;color:#aab0c8;margin-top:16px;">'
@@ -459,36 +468,7 @@ def render_sidebar():
             'KDIA 디스플레이산업 보안가이드</div>',
             unsafe_allow_html=True,
         )
-    # 관리자 진단 (별첨 청크 확인)
-    with st.expander("🔧 관리자 진단"):
-        if st.button("별첨 청크 확인", key="check_appendix"):
-            vs = st.session_state.chain.vectorstore if st.session_state.chain else None
-            if not vs:
-                st.warning("챗봇이 초기화되지 않았습니다.")
-            else:
-                results = vs.similarity_search("산업기술보호법 별첨 산업기술보호지침", k=30)
 
-                appendix_docs = [
-                    d for d in results
-                    if d.metadata.get("content_type") == "별첨"
-                ]
-
-                st.markdown(f"**전체 검색 결과:** {len(results)}개")
-                st.markdown(f"**별첨 청크 수:** {len(appendix_docs)}개")
-
-                if appendix_docs:
-                    for i, doc in enumerate(appendix_docs, 1):
-                        v = doc.metadata.get("version", "?")
-                        page = doc.metadata.get("page", "?")
-                        chapter = doc.metadata.get("gen3_chapter", "")
-                        text_preview = doc.page_content[:150].replace("\n", " ")
-                        st.markdown(
-                            f"**{i}. [{v}기]** p.{page} {chapter}  \n"
-                            f"`{text_preview}...`"
-                        )
-                else:
-                    st.error("❌ 별첨 청크가 검색되지 않습니다.")
-                    st.info("PDF에서 별첨 텍스트가 추출되지 않았거나 패턴이 다를 수 있습니다.")
 
 def process_question(question: str):
     if st.session_state.question_count >= DAILY_LIMIT:
@@ -505,10 +485,9 @@ def process_question(question: str):
     st.session_state.question_count += 1
     st.session_state.last_request = time.time()
 
-    # 에러 메시지를 세션에 저장해서 rerun 후에도 표시
     error_msg = None
 
-    with st.spinner("🔍 가이드를 검색하고 있습니다..."):
+    with st.spinner("🔍 가이드를 검색하고 있습니다... (5~15초 소요)"):
         try:
             result = st.session_state.chain.invoke(question)
             st.session_state.messages.append({
@@ -517,10 +496,14 @@ def process_question(question: str):
                 "result": result,
             })
         except Exception as e:
-            error_msg = f"❌ 실제 에러: {type(e).__name__}: {str(e)}"
+            err = str(e).lower()
+            if any(k in err for k in ["rate", "429", "limit", "quota", "exceeded"]):
+                error_msg = "⏳ Groq 사용량 한도 초과입니다. 1~2분 후 다시 시도하거나, 일일 한도 초과 시 내일 오전 9시(한국시간) 이후 이용 가능합니다."
+                st.session_state.question_count -= 1
+            else:
+                error_msg = "❌ 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
             st.session_state.messages.pop()
 
-    # 에러 메시지를 세션에 저장
     if error_msg:
         st.session_state["last_error"] = error_msg
     else:
@@ -528,12 +511,12 @@ def process_question(question: str):
 
     st.rerun()
 
+
 def main():
     init_session()
     ensure_vectorstore()
     render_sidebar()
 
-    # 헤더 — KDIA 로고 카드
     if LOGO_B64:
         logo_html = (
             f'<div class="logo-wrap">'
@@ -565,18 +548,17 @@ def main():
                 )
                 return
 
-    # 웰컴 메시지
     if not st.session_state.messages:
         avatar = f'<div class="avatar">{logo_img_tag(26)}</div>'
         st.markdown(f"""
         <div class="msg-bot">
             {avatar}
             <div class="bubble">
-                안녕하세요! 저는 <b>한국디스플레이산업협회</b>입니다. 😊<br><br>
+                안녕하세요! 저는 한국디스플레이산업협회의 <b>보안가이드 챗봇</b>입니다. 😊<br><br>
                 디스플레이산업 보안가이드 <b>1기 · 2기 · 3기</b>를 바탕으로 질문에 답변드립니다.<br><br>
                 • <b>1기</b>: 장비/부품·소재 기업 실무 보안<br>
                 • <b>2기</b>: 핵심인력 채용·재직·퇴사 보안<br>
-                • <b>3기</b>: 해외수출·사업장 보안<br><br>
+                • <b>3기</b>: 해외수출·사업장 보안 (현행 최신)<br><br>
                 왼쪽 추천 질문을 눌러보거나, 직접 질문해주세요!
             </div>
         </div>
