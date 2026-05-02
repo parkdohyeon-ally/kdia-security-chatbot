@@ -429,43 +429,30 @@ def render_sidebar():
             st.session_state.messages = []
             st.rerun()
 
-        # ── 관리자 진단 (사이드바 안에 위치) ──
+# ── 관리자 진단 (사이드바 안에 위치) ──
         st.markdown("---")
         with st.expander("🔧 관리자 진단"):
-    if st.button("별첨 청크 확인", key="check_appendix"):
-        vs = st.session_state.chain.vectorstore if st.session_state.chain else None
-        if not vs:
-            st.warning("챗봇이 초기화되지 않았습니다.")
-        else:
-            with st.spinner("검색 중..."):
-                results = vs.similarity_search(
-                    "산업기술보호법 별첨 산업기술보호지침", k=30
-                )
-
-            # 별첨 + 법령조항 모두 표시
-            appendix_docs = [
-                d for d in results
-                if d.metadata.get("content_type") in ("별첨", "법령조항")
-            ]
-
-            st.markdown(f"**전체 검색 결과:** {len(results)}개")
-            st.markdown(f"**별첨+법령 청크 수:** {len(appendix_docs)}개")
-
-            if appendix_docs:
-                for i, doc in enumerate(appendix_docs, 1):
-                    v = doc.metadata.get("version", "?")
-                    page = doc.metadata.get("page", "?")
-                    ctype = doc.metadata.get("content_type", "?")
-                    law = doc.metadata.get("law_name", "N/A")
-                    article = doc.metadata.get("law_article", "N/A")
-                    chapter = doc.metadata.get("gen3_chapter", "")
-                    text_preview = doc.page_content[:150].replace("\n", " ")
-                    st.markdown(
-                        f"**{i}. [{v}]** p.{page} | {ctype} | {law} {article}  \n"
-                        f"`{text_preview}...`"
-                    )
-            else:
-                st.error("❌ 별첨/법령 청크가 검색되지 않습니다.")
+            if st.button("별첨 청크 확인", key="check_appendix"):
+                vs = st.session_state.chain.vectorstore if st.session_state.chain else None
+                if not vs:
+                    st.warning("챗봇이 초기화되지 않았습니다.")
+                else:
+                    with st.spinner("검색 중..."):
+                        results = vs.similarity_search(
+                            "산업기술보호법 별첨 산업기술보호지침", k=30
+                        )
+                    appendix_docs = [
+                        d for d in results
+                        if d.metadata.get("content_type") in ("별첨", "법령조항")
+                    ]
+                    st.markdown(f"**전체 검색 결과:** {len(results)}개")
+                    st.markdown(f"**별첨+법령 청크 수:** {len(appendix_docs)}개")
+                    if appendix_docs:
+                        for i, doc in enumerate(appendix_docs, 1):
+                            v = doc.metadata.get("version", "?")
+                            page = doc.metadata.get("page", "?")
+                            ctype = doc.metadata.get("content_type", "?")
+                            law = doc.metadata.get("law_name", "N/A")
 
         st.markdown(
             '<div style="font-size:0.7rem;color:#aab0c8;margin-top:16px;">'
