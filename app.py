@@ -210,7 +210,7 @@ def init_session():
 def ensure_vectorstore():
     from config import VECTORSTORE_DIR, PDF_DIR
     vs_path = Path(VECTORSTORE_DIR)
-    if not vs_path.exists() or not any(vs_path.iterdir()):
+    if True:
         st.info("🔧 처음 실행입니다. 가이드를 읽어들이는 중... (3~5분 소요)")
         from src.pdf_loader import load_all_guides
         from src.vectorstore import build_vectorstore
