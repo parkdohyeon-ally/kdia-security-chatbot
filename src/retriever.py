@@ -302,12 +302,20 @@ def _enrich_appendix(
                 }
                 search_keyword = procedure_keywords.get(procedure, f"{procedure} 법률 조항 산업기술보호법")
                 candidates = vectorstore.similarity_search(search_keyword, k=6)
+                # 법령 청크 + 3기 별첨 모두 검색
                 appendix_docs = _meta_filter(candidates, {
+                    "$and": [
+                        {"version": "법령"},
+                        {"content_type": "법령조항"},
+                    ]
+                })[:2]
+                # 3기 별첨도 추가
+                appendix_docs += _meta_filter(candidates, {
                     "$and": [
                         {"version": "3기"},
                         {"content_type": "별첨"},
                     ]
-                })[:2]
+                })[:1]
                 for a in appendix_docs:
                     if id(a) not in seen_ids:
                         enriched.append(a)
