@@ -270,47 +270,58 @@ def _enrich_gen3_pairs(
 def _enrich_appendix(
     vectorstore: FAISS, results: List[Document]
 ) -> List[Document]:
-    """
-    별첨(법령) 청크 보강 — 옵션 B 적용.
-    3기 Ⅲ장 절차 질문에만 별첨 검색 (일반 질문은 건너뜀).
-    2기 핵심인력 항목 질문에도 관련 별첨 보강.
-    """
     enriched = list(results)
     seen_ids = {id(d) for d in results}
 
-    # 3기: Ⅲ장 절차 청크가 있을 때만 별첨 보강 (옵션 B — has_gen3_main 제거)
     has_gen3_procedure = any(
         d.metadata.get("gen3_chapter") == "Ⅲ_보호제도절차"
         for d in results
     )
 
     if has_gen3_procedure:
+        # procedure_type 체크 없이 바로 법령 검색
+        procedure_keywords = {
+            "수출승인": "산업기술보호법 제11조 국가핵심기술 수출 승인 연구개발비",
+            "수출신고": "산업기술보호법 제11조 국가핵심기술 수출 신고",
+            "해외인수합병": "산업기술보호법 제11조의2 해외인수합병 승인 신고",
+            "사전검토": "산업기술보호법 제11조 사전검토 신청",
+            "기술판정": "산업기술보호법 제9조 국가핵심기술 지정 판정",
+            "침해신고": "산업기술보호법 제14조 침해행위 신고",
+        }
+
+        # Ⅲ장 청크들에서 procedure_type 수집
+        procedures = set()
         for doc in results:
-            if doc.metadata.get("version") != "3기":
-                continue
-            procedure = doc.metadata.get("procedure_type", "N/A")
-            if procedure == "N/A":
-                continue
+            if doc.metadata.get("gen3_chapter") == "Ⅲ_보호제도절차":
+                p = doc.metadata.get("procedure_type", "N/A")
+                if p != "N/A":
+                    procedures.add(p)
+
+        # procedure_type이 없으면 기본 수출승인으로 검색
+        if not procedures:
+            procedures = {"수출승인"}
+
+        for procedure in procedures:
             try:
-                procedure_keywords = {
-                    "수출승인": "산업기술보호법 제11조 국가핵심기술 수출 승인 연구개발비",
-                    "수출신고": "산업기술보호법 제11조 국가핵심기술 수출 신고",
-                    "해외인수합병": "산업기술보호법 제11조의2 해외인수합병 승인 신고",
-                    "사전검토": "산업기술보호법 제11조 사전검토 신청",
-                    "기술판정": "산업기술보호법 제9조 국가핵심기술 지정 판정",
-                    "침해신고": "산업기술보호법 제14조 침해행위 신고",
-                }
-                search_keyword = procedure_keywords.get(procedure, f"{procedure} 법률 조항 산업기술보호법")
-                candidates = vectorstore.similarity_search(search_keyword, k=6)
-                # 법령 청크 + 3기 별첨 모두 검색
-                appendix_docs = _meta_filter(candidates, {
+                search_keyword = procedure_keywords.get(
+                    procedure, f"{procedure} 법률 조항 산업기술보호법"
+                )
+                candidates = vectorstore.similarity_search(search_keyword, k=10)
+
+                # 법령 청크 우선
+                law_docs = _meta_filter(candidates, {
                     "$and": [
                         {"version": "법령"},
                         {"content_type": "법령조항"},
                     ]
                 })[:2]
+                for a in law_docs:
+                    if id(a) not in seen_ids:
+                        enriched.append(a)
+                        seen_ids.add(id(a))
+
                 # 3기 별첨도 추가
-                appendix_docs += _meta_filter(candidates, {
+                appendix_docs = _meta_filter(candidates, {
                     "$and": [
                         {"version": "3기"},
                         {"content_type": "별첨"},
@@ -320,10 +331,11 @@ def _enrich_appendix(
                     if id(a) not in seen_ids:
                         enriched.append(a)
                         seen_ids.add(id(a))
+
             except Exception:
                 continue
 
-    # 2기: 핵심인력 항목 질문에 별첨 보강
+    # 2기 별첨 보강
     has_gen2 = any(d.metadata.get("version") == "2기" for d in results)
     if has_gen2:
         for doc in results:
