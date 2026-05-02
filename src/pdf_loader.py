@@ -504,17 +504,16 @@ def load_law_txt_files() -> List[Document]:
 
 
 def split_law_documents(documents: List[Document]) -> List[Document]:
-    """법령 청킹 — 조항 단위로 분리되도록 구분자 조정"""
+    """법령 청킹 — 조항 단위로 분리"""
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=CHUNK_SIZE,
         chunk_overlap=100,
         separators=[
-            "\n\n[법령명:",  # 조항 경계 (가장 우선)
-            "\n[법령명:",
             "\n\n", "\n①", "\n②", "\n③", "\n④", "\n⑤",
             "\n⑥", "\n⑦", "\n⑧", "\n⑨", "\n⑩",
             "\n1.", "\n2.", "\n3.", "\n4.", "\n5.",
-            "\n", ".", " ", ""],
+            "\n", ".", " ", ""
+        ],
         length_function=len,
     )
     chunks = splitter.split_documents(documents)
