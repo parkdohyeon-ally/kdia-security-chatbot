@@ -507,30 +507,27 @@ def split_law_documents(documents: List[Document]) -> List[Document]:
     """법령 청킹 — 조항 단위로 분리되도록 구분자 조정"""
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=CHUNK_SIZE,
-        chunk_overlap=100,  # 법령은 overlap 작게
-        separators=["\n\n", "\n①", "\n②", "\n③", "\n④", "\n⑤",
-                    "\n⑥", "\n⑦", "\n⑧", "\n⑨", "\n⑩",
-                    "\n1.", "\n2.", "\n3.", "\n4.", "\n5.",
-                    "\n", ".", " ", ""],
+        chunk_overlap=100,
+        separators=[
+            "\n\n[법령명:",  # 조항 경계 (가장 우선)
+            "\n[법령명:",
+            "\n\n", "\n①", "\n②", "\n③", "\n④", "\n⑤",
+            "\n⑥", "\n⑦", "\n⑧", "\n⑨", "\n⑩",
+            "\n1.", "\n2.", "\n3.", "\n4.", "\n5.",
+            "\n", ".", " ", ""],
         length_function=len,
     )
     chunks = splitter.split_documents(documents)
 
-    # 청크별 법령명/조항 재감지
-    current_law_name = None
-    current_article = None
+    # 청크별 법령명/조항 독립적으로 재감지
     for chunk in chunks:
-        detected_law = detect_law_name(chunk.page_content)
+        text = chunk.page_content
+        detected_law = detect_law_name(text)
+        detected_article = detect_law_article(text)
         if detected_law:
-            current_law_name = detected_law
-        detected_article = detect_law_article(chunk.page_content)
+            chunk.metadata["law_name"] = detected_law
         if detected_article:
-            current_article = detected_article
-
-        if current_law_name and chunk.metadata.get("law_name") == "미분류":
-            chunk.metadata["law_name"] = current_law_name
-        if current_article and chunk.metadata.get("law_article") == "N/A":
-            chunk.metadata["law_article"] = current_article
+            chunk.metadata["law_article"] = detected_article
 
     return chunks
 
