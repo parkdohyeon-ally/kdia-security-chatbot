@@ -464,7 +464,7 @@ def load_law_txt_files() -> List[Document]:
         text = txt_path.read_text(encoding="utf-8")
 
         # 구분선(===, ---) 기준으로 섹션 분리
-        sections = re.split(r"\n={10,}\n|\n-{10,}\n", text)
+        sections = re.split(r"(?=\[법령명:)", text)
 
         for i, section in enumerate(sections):
             section = section.strip()
