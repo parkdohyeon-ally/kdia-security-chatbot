@@ -453,6 +453,10 @@ def render_sidebar():
                             page = doc.metadata.get("page", "?")
                             ctype = doc.metadata.get("content_type", "?")
                             law = doc.metadata.get("law_name", "N/A")
+                            article = doc.metadata.get("law_article", "N/A")
+                            text_preview = doc.page_content[:100].replace("\n", " ")
+                            st.text(f"{i}. [{v}] p.{page} | {ctype} | {law} | {article}")
+                            st.text(f"   {text_preview}")
 
         st.markdown(
             '<div style="font-size:0.7rem;color:#aab0c8;margin-top:16px;">'
