@@ -57,6 +57,26 @@ class SecurityGuideChain:
             raise
         return {
             "answer": response.content,
+            answer = response.content
+            law_docs = [d for d in documents if d.metadata.get("version") == "법령"]
+            if law_docs:
+                law_text = "\n\n**[관련 법령 원문]** ⚖️"
+                added = False
+                for doc in law_docs:
+                    law_name = doc.metadata.get("law_name", "")
+                    law_article = doc.metadata.get("law_article", "")
+                    article_num = law_article.split("(")[0] if law_article else ""
+                    if article_num and article_num in answer:
+                        law_text += f"\n\n「{law_name}」 {law_article}\n{doc.page_content}"
+                        added = True
+                if added:
+                    if "[출처]" in answer:
+                        answer = answer.replace("[출처]", law_text + "\n\n**[출처]**")
+                    else:
+                        answer = answer + law_text
+
+            return {
+                "answer": answer,
             "query_type": classification.type,
             "query_type_label": query_type_label,
             "specified_versions": classification.specified_versions,
