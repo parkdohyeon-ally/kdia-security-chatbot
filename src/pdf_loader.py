@@ -1,22 +1,12 @@
 """
-PDF 로딩 및 메타데이터 태깅 모듈 (디스플레이산업 보안가이드 1기/2기/3기 통합)
+PDF 로딩 및 메타데이터 태깅 모듈 (디스플레이산업 보안가이드 1기/2기/3기 + 법령 통합)
 
 기수마다 구조가 다르므로 version-aware 파싱을 합니다:
 
 [1기] 구조: PART X → PROCESS → RISK/COUNTERMEASURE
-  메타데이터: business_type, process, content_type=RISK/COUNTERMEASURE
-
 [2기] 구조: 단계(채용/재직/퇴사) → 보안관리항목 → 본문 + 사례
-  메타데이터: lifecycle_stage, lifecycle_item, content_type=본문/보안사고사례/보안우수사례/별첨
-
 [3기] 구조: 챕터(Ⅰ~Ⅵ) → 해외사업장 6개 영역 → 위험사례(상/중/하) → 대응방안(필수/선택)
-  메타데이터: gen3_chapter, overseas_domain, risk_id, risk_level, measure_type, procedure_type
-
-[공통 메타데이터]
-  version, source_file, page, is_current
-
-이렇게 통합하면 1기·2기·3기 청크가 같은 벡터 DB에서 함께 검색되면서도
-출처를 구조에 맞게 정확히 표시할 수 있습니다.
+[법령] 구조: 법령명 → 조 → 항 → 호 (txt 파일로 관리)
 """
 import re
 from pathlib import Path
@@ -74,10 +64,8 @@ GEN2_STAGE_PATTERNS = [
 ]
 
 GEN2_ITEM_PATTERNS = [
-    # 채용 단계 (2개)
     (re.compile(r"①\s*채용\s*검증"), "채용검증"),
     (re.compile(r"②\s*보안\s*서약"), "보안서약"),
-    # 재직 단계 (11개)
     (re.compile(r"①\s*핵심인력\s*대상선정"), "핵심인력대상선정"),
     (re.compile(r"②\s*산업보안\s*담당자지정"), "산업보안담당자지정"),
     (re.compile(r"③\s*핵심인력\s*산업보안교육"), "핵심인력산업보안교육"),
@@ -89,7 +77,6 @@ GEN2_ITEM_PATTERNS = [
     (re.compile(r"⑨\s*해외사업장파견\s*보안관리"), "해외사업장파견보안관리"),
     (re.compile(r"⑩\s*기술유출\s*징후탐지와\s*대응"), "기술유출징후탐지와대응"),
     (re.compile(r"⑪\s*고용계약\s*갱신"), "고용계약갱신"),
-    # 퇴사 단계 (2개)
     (re.compile(r"①\s*권한조정과\s*회수관리"), "권한조정과회수관리"),
     (re.compile(r"②\s*보안서약과\s*퇴직관리"), "보안서약과퇴직관리"),
 ]
@@ -103,7 +90,6 @@ APPENDIX_PATTERN = re.compile(r"\[별첨\s*\d+\]|별\s*첨")
 # 3기 가이드 파싱 패턴
 # ===========================================================================
 
-# 챕터 식별 (목차 + 본문 헤더)
 GEN3_CHAPTER_PATTERNS = [
     (re.compile(r"Ⅰ\s*[\.\s]*산업기술\s*유출\s*및\s*보호\s*동향"), "Ⅰ_유출보호동향"),
     (re.compile(r"Ⅱ\s*[\.\s]*산업기술\s*보호제도\s*소개"), "Ⅱ_보호제도소개"),
@@ -113,7 +99,6 @@ GEN3_CHAPTER_PATTERNS = [
     (re.compile(r"부\s*록|산업기술보호지침|별\s*[첨지표]"), "Ⅵ_부록"),
 ]
 
-# Ⅴ장 6개 영역 헤더 패턴 (예: "1 해외사업장 기술정보 관리")
 GEN3_DOMAIN_PATTERNS = [
     (re.compile(r"해외사업장\s*기술정보\s*관리"), "기술정보관리"),
     (re.compile(r"해외사업장\s*기술보호\s*지원"), "기술보호지원"),
@@ -123,25 +108,19 @@ GEN3_DOMAIN_PATTERNS = [
     (re.compile(r"해외사업장\s*업무환경\s*변화\s*대응"), "업무환경변화대응"),
 ]
 
-# 위험사례 번호 (예: "1-1", "2-3")
 GEN3_RISK_ID_PATTERN = re.compile(r"([1-6])\s*[-–]\s*([1-9])\s")
 
-# 위험등급 마커 ("[보안위험사례] 상/중/하")
 GEN3_RISK_LEVEL_PATTERNS = [
     (re.compile(r"\[\s*보안위험사례\s*\].*?\b상\b"), "상"),
     (re.compile(r"\[\s*보안위험사례\s*\].*?\b중\b"), "중"),
     (re.compile(r"\[\s*보안위험사례\s*\].*?\b하\b"), "하"),
 ]
 
-# 콘텐츠 유형 마커
 GEN3_RISK_CASE_PATTERN = re.compile(r"\[\s*보안위험사례\s*\]")
 GEN3_COUNTERMEASURE_PATTERN = re.compile(r"\[\s*보안관리방안\s*\]")
-
-# 대응방안 유형 (필수/선택)
 GEN3_REQUIRED_PATTERN = re.compile(r"^\s*필수\s*$|\n\s*필수\s*\n")
 GEN3_OPTIONAL_PATTERN = re.compile(r"^\s*선택\s*$|\n\s*선택\s*\n")
 
-# Ⅲ장 절차 유형
 GEN3_PROCEDURE_PATTERNS = [
     (re.compile(r"수출\s*승인"), "수출승인"),
     (re.compile(r"수출\s*신고"), "수출신고"),
@@ -150,6 +129,21 @@ GEN3_PROCEDURE_PATTERNS = [
     (re.compile(r"보호대상\s*기술\s*여부\s*판정|국가핵심기술\s*판정"), "기술판정"),
     (re.compile(r"산업기술\s*침해신고"), "침해신고"),
 ]
+
+# ===========================================================================
+# 법령 파싱 패턴
+# ===========================================================================
+
+LAW_NAME_PATTERNS = [
+    (re.compile(r"산업기술의\s*유출방지\s*및\s*보호에\s*관한\s*법률|산업기술보호법"), "산업기술보호법"),
+    (re.compile(r"국가첨단전략산업\s*경쟁력\s*강화\s*및\s*보호에\s*관한\s*특별조치법|국가첨단전략산업법"), "국가첨단전략산업법"),
+    (re.compile(r"부정경쟁방지\s*및\s*영업비밀보호에\s*관한\s*법률|부정경쟁방지법"), "부정경쟁방지법"),
+    (re.compile(r"근로기준법"), "근로기준법"),
+    (re.compile(r"대외무역법"), "대외무역법"),
+    (re.compile(r"방위사업법"), "방위사업법"),
+]
+
+LAW_ARTICLE_PATTERN = re.compile(r"제(\d+조(?:의\d+)?)\s*\(([^)]+)\)")
 
 
 # ===========================================================================
@@ -192,26 +186,24 @@ def build_gen1_page_metadata(
 ) -> Dict[str, str]:
     new_part = detect_gen1_part(page_text) or current_part
     new_process = detect_gen1_process(page_text) or current_process
-    
     business_type = GEN1_BUSINESS_BY_PART.get(new_part or "", "공통")
     content_type = detect_gen1_content_type(page_text)
-    
     return {
         "structure_type": "gen1",
         "part": new_part or "미분류",
         "business_type": business_type,
         "process": new_process or "N/A",
         "content_type": content_type,
-        # 2기 필드는 빈 값으로 채워서 스키마 통일
         "lifecycle_stage": "N/A",
         "lifecycle_item": "N/A",
-        # 3기 필드는 빈 값으로 채워서 스키마 통일
         "gen3_chapter": "N/A",
         "overseas_domain": "N/A",
         "risk_id": "N/A",
         "risk_level": "N/A",
         "measure_type": "N/A",
         "procedure_type": "N/A",
+        "law_name": "N/A",
+        "law_article": "N/A",
     }
 
 
@@ -225,13 +217,11 @@ def detect_gen2_stage_and_item(text: str) -> Tuple[Optional[str], Optional[str]]
         if pattern.search(text):
             stage = label
             break
-    
     item = None
     for pattern, label in GEN2_ITEM_PATTERNS:
         if pattern.search(text):
             item = label
             break
-    
     return stage, item
 
 
@@ -239,7 +229,6 @@ def detect_gen2_content_type(text: str) -> str:
     has_incident = bool(GEN2_INCIDENT_PATTERN.search(text))
     has_best = bool(GEN2_BEST_PRACTICE_PATTERN.search(text))
     has_appendix = bool(APPENDIX_PATTERN.search(text))
-    
     if has_appendix:
         return "별첨"
     if has_incident and has_best:
@@ -259,26 +248,23 @@ def build_gen2_page_metadata(
     new_stage_detected, new_item_detected = detect_gen2_stage_and_item(page_text)
     new_stage = new_stage_detected or current_stage
     new_item = new_item_detected or current_item
-    
     content_type = detect_gen2_content_type(page_text)
-    
     return {
         "structure_type": "gen2",
-        # 1기 필드는 빈 값으로 채워서 스키마 통일
         "part": "N/A",
-        "business_type": "전산업공통",  # 2기는 기업유형 무관
+        "business_type": "전산업공통",
         "process": "N/A",
         "content_type": content_type,
-        # 2기 고유 필드
         "lifecycle_stage": new_stage or "미분류",
         "lifecycle_item": new_item or "미분류",
-        # 3기 필드는 빈 값으로 채워서 스키마 통일
         "gen3_chapter": "N/A",
         "overseas_domain": "N/A",
         "risk_id": "N/A",
         "risk_level": "N/A",
         "measure_type": "N/A",
         "procedure_type": "N/A",
+        "law_name": "N/A",
+        "law_article": "N/A",
     }
 
 
@@ -287,7 +273,6 @@ def build_gen2_page_metadata(
 # ===========================================================================
 
 def detect_gen3_chapter(text: str) -> Optional[str]:
-    """3기 챕터(Ⅰ~Ⅵ) 감지. 본문 헤더 또는 강한 시그널이 있을 때만."""
     for pattern, label in GEN3_CHAPTER_PATTERNS:
         if pattern.search(text):
             return label
@@ -295,7 +280,6 @@ def detect_gen3_chapter(text: str) -> Optional[str]:
 
 
 def detect_gen3_domain(text: str) -> Optional[str]:
-    """Ⅴ장 6개 영역 감지. 영역 헤더가 페이지에 등장할 때만."""
     for pattern, label in GEN3_DOMAIN_PATTERNS:
         if pattern.search(text):
             return label
@@ -303,35 +287,23 @@ def detect_gen3_domain(text: str) -> Optional[str]:
 
 
 def detect_gen3_risk_id_and_level(text: str) -> Tuple[Optional[str], Optional[str]]:
-    """
-    위험사례 번호(예: "1-1") 및 등급(상/중/하) 감지.
-    페이지 상단에 "1-1 진출 국가에 대한..." + "[보안위험사례] 상" 형태로 등장.
-    """
-    # "[보안위험사례] 상/중/하" 마커가 있어야 위험사례 페이지로 인정
     risk_level = None
     for pattern, label in GEN3_RISK_LEVEL_PATTERNS:
         if pattern.search(text):
             risk_level = label
             break
-    
-    # 위험사례 페이지가 아니면 risk_id도 추출하지 않음
     if not risk_level:
         return None, None
-    
-    # 위험사례 번호 추출
     risk_id = None
     match = GEN3_RISK_ID_PATTERN.search(text)
     if match:
         risk_id = f"{match.group(1)}-{match.group(2)}"
-    
     return risk_id, risk_level
 
 
 def detect_gen3_measure_type(text: str) -> str:
-    """대응방안 유형: 필수만/선택만/둘다/없음"""
     has_required = bool(GEN3_REQUIRED_PATTERN.search(text))
     has_optional = bool(GEN3_OPTIONAL_PATTERN.search(text))
-    
     if has_required and has_optional:
         return "필수와선택"
     if has_required:
@@ -342,33 +314,24 @@ def detect_gen3_measure_type(text: str) -> str:
 
 
 def detect_gen3_procedure_type(text: str) -> Optional[str]:
-    """Ⅲ장 보호제도 절차 유형 감지"""
     for pattern, label in GEN3_PROCEDURE_PATTERNS:
         if pattern.search(text):
             return label
     return None
 
 
-def detect_gen3_content_type(
-    text: str,
-    chapter: Optional[str],
-) -> str:
-    """3기 콘텐츠 유형 분류"""
+def detect_gen3_content_type(text: str, chapter: Optional[str]) -> str:
     has_risk_case = bool(GEN3_RISK_CASE_PATTERN.search(text))
     has_countermeasure = bool(GEN3_COUNTERMEASURE_PATTERN.search(text))
     has_appendix = bool(APPENDIX_PATTERN.search(text))
-    
     if chapter == "Ⅵ_부록" or has_appendix:
         return "별첨"
-    
     if has_risk_case and has_countermeasure:
         return "위험사례와대응방안"
     if has_risk_case:
         return "보안위험사례"
     if has_countermeasure:
         return "보안관리방안"
-    
-    # 챕터별 기본 유형
     if chapter == "Ⅲ_보호제도절차":
         return "보호제도절차"
     if chapter == "Ⅱ_보호제도소개":
@@ -377,7 +340,6 @@ def detect_gen3_content_type(
         return "정부지원제도"
     if chapter == "Ⅰ_유출보호동향":
         return "동향분석"
-    
     return "일반설명"
 
 
@@ -388,23 +350,11 @@ def build_gen3_page_metadata(
     current_risk_id: Optional[str],
     current_risk_level: Optional[str],
 ) -> Dict[str, str]:
-    """
-    3기는 stateful 추적이 더 복잡:
-    - 챕터(Ⅰ~Ⅵ): 큰 단위, 페이지 헤더로 변경
-    - 영역(6개): Ⅴ장 내부에서만 의미 있음
-    - 위험사례(1-1 등): 영역 내부에서 페이지 단위로 변경
-    - 위험등급(상/중/하): 위험사례마다 동반
-    """
-    # 1. 챕터 추적
     new_chapter = detect_gen3_chapter(page_text) or current_chapter
-    
-    # 2. 영역 추적 (Ⅴ장에서만 의미 있음)
     if new_chapter == "Ⅴ_해외사업장보안":
         new_domain = detect_gen3_domain(page_text) or current_domain
     else:
         new_domain = "N/A"
-    
-    # 3. 위험사례 ID + 등급 (Ⅴ장에서만)
     if new_chapter == "Ⅴ_해외사업장보안":
         detected_risk_id, detected_risk_level = detect_gen3_risk_id_and_level(page_text)
         new_risk_id = detected_risk_id or current_risk_id
@@ -412,30 +362,167 @@ def build_gen3_page_metadata(
     else:
         new_risk_id = "N/A"
         new_risk_level = "N/A"
-    
-    # 4. 콘텐츠 유형 / 대응방안 유형 / 절차 유형
     content_type = detect_gen3_content_type(page_text, new_chapter)
     measure_type = detect_gen3_measure_type(page_text)
     procedure_type = detect_gen3_procedure_type(page_text) if new_chapter == "Ⅲ_보호제도절차" else None
-    
     return {
         "structure_type": "gen3",
-        # 1기 필드는 빈 값으로 채워서 스키마 통일
         "part": "N/A",
-        "business_type": "전산업공통",  # 3기는 기업유형 무관
+        "business_type": "전산업공통",
         "process": "N/A",
         "content_type": content_type,
-        # 2기 필드는 빈 값으로 채워서 스키마 통일
         "lifecycle_stage": "N/A",
         "lifecycle_item": "N/A",
-        # 3기 고유 필드
         "gen3_chapter": new_chapter or "미분류",
         "overseas_domain": new_domain or "N/A",
         "risk_id": new_risk_id or "N/A",
         "risk_level": new_risk_level or "N/A",
         "measure_type": measure_type,
         "procedure_type": procedure_type or "N/A",
+        "law_name": "N/A",
+        "law_article": "N/A",
     }
+
+
+# ===========================================================================
+# 법령 메타데이터 추출
+# ===========================================================================
+
+def detect_law_name(text: str) -> Optional[str]:
+    for pattern, label in LAW_NAME_PATTERNS:
+        if pattern.search(text):
+            return label
+    return None
+
+
+def detect_law_article(text: str) -> Optional[str]:
+    match = LAW_ARTICLE_PATTERN.search(text)
+    if match:
+        return f"제{match.group(1)}({match.group(2)})"
+    return None
+
+
+def build_law_chunk_metadata(
+    chunk_text: str,
+    current_law_name: Optional[str],
+    current_article: Optional[str],
+) -> Dict[str, str]:
+    new_law_name = detect_law_name(chunk_text) or current_law_name
+    new_article = detect_law_article(chunk_text) or current_article
+    return {
+        "structure_type": "law",
+        "part": "N/A",
+        "business_type": "전산업공통",
+        "process": "N/A",
+        "content_type": "법령조항",
+        "lifecycle_stage": "N/A",
+        "lifecycle_item": "N/A",
+        "gen3_chapter": "N/A",
+        "overseas_domain": "N/A",
+        "risk_id": "N/A",
+        "risk_level": "N/A",
+        "measure_type": "N/A",
+        "procedure_type": "N/A",
+        "law_name": new_law_name or "미분류",
+        "law_article": new_article or "N/A",
+    }
+
+
+# ===========================================================================
+# 법령 txt 파일 로딩
+# ===========================================================================
+
+def load_law_txt_files() -> List[Document]:
+    """법령 txt 파일을 읽어서 Document 리스트로 반환"""
+    law_dir = PDF_DIR / "법령"
+    if not law_dir.exists():
+        print(f"⚠️  {law_dir} 폴더가 없습니다.")
+        return []
+
+    txt_files = list(law_dir.glob("*.txt"))
+    if not txt_files:
+        print(f"⚠️  {law_dir}에 txt 파일이 없습니다.")
+        return []
+
+    meta = GUIDE_METADATA["법령"]
+    documents = []
+    current_law_name = None
+    current_article = None
+
+    for txt_path in txt_files:
+        print(f"  📄 법령 파일 로딩 중: {txt_path.name}")
+        text = txt_path.read_text(encoding="utf-8")
+
+        # 구분선(===, ---) 기준으로 섹션 분리
+        sections = re.split(r"\n={10,}\n|\n-{10,}\n", text)
+
+        for i, section in enumerate(sections):
+            section = section.strip()
+            if not section:
+                continue
+            # 빈 구분자나 헤더만 있는 섹션 건너뜀
+            if len(section) < 30:
+                continue
+
+            # 법령명 및 조항 감지
+            detected_law = detect_law_name(section)
+            if detected_law:
+                current_law_name = detected_law
+            detected_article = detect_law_article(section)
+            if detected_article:
+                current_article = detected_article
+
+            meta_extracted = build_law_chunk_metadata(
+                section, current_law_name, current_article
+            )
+
+            doc = Document(
+                page_content=section,
+                metadata={
+                    "version": "법령",
+                    "source_file": txt_path.name,
+                    "publisher": meta["publisher"],
+                    "issued_date": meta["issued_date"],
+                    "is_current": meta["is_current"],
+                    "page": i + 1,
+                    **meta_extracted,
+                },
+            )
+            documents.append(doc)
+
+    return documents
+
+
+def split_law_documents(documents: List[Document]) -> List[Document]:
+    """법령 청킹 — 조항 단위로 분리되도록 구분자 조정"""
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=CHUNK_SIZE,
+        chunk_overlap=100,  # 법령은 overlap 작게
+        separators=["\n\n", "\n①", "\n②", "\n③", "\n④", "\n⑤",
+                    "\n⑥", "\n⑦", "\n⑧", "\n⑨", "\n⑩",
+                    "\n1.", "\n2.", "\n3.", "\n4.", "\n5.",
+                    "\n", ".", " ", ""],
+        length_function=len,
+    )
+    chunks = splitter.split_documents(documents)
+
+    # 청크별 법령명/조항 재감지
+    current_law_name = None
+    current_article = None
+    for chunk in chunks:
+        detected_law = detect_law_name(chunk.page_content)
+        if detected_law:
+            current_law_name = detected_law
+        detected_article = detect_law_article(chunk.page_content)
+        if detected_article:
+            current_article = detected_article
+
+        if current_law_name and chunk.metadata.get("law_name") == "미분류":
+            chunk.metadata["law_name"] = current_law_name
+        if current_article and chunk.metadata.get("law_article") == "N/A":
+            chunk.metadata["law_article"] = current_article
+
+    return chunks
 
 
 # ===========================================================================
@@ -443,26 +530,28 @@ def build_gen3_page_metadata(
 # ===========================================================================
 
 def load_pdfs_for_version(version: str) -> List[Document]:
-    """기수별로 다른 파싱 로직 적용."""
+    """기수별로 다른 파싱 로직 적용 (법령은 별도 함수 사용)"""
+    if version == "법령":
+        return load_law_txt_files()
+
     version_dir = PDF_DIR / version
     if not version_dir.exists():
         print(f"⚠️  {version_dir} 폴더가 없습니다.")
         return []
-    
+
     pdf_files = list(version_dir.glob("*.pdf"))
     if not pdf_files:
         print(f"⚠️  {version_dir}에 PDF 파일이 없습니다.")
         return []
-    
+
     meta = GUIDE_METADATA[version]
     documents = []
-    
+
     for pdf_path in pdf_files:
         print(f"  📄 로딩 중: {pdf_path.name}")
         loader = PyPDFLoader(str(pdf_path))
         pages = loader.load()
-        
-        # 기수별 stateful 추적 변수
+
         gen1_part: Optional[str] = None
         gen1_process: Optional[str] = None
         gen2_stage: Optional[str] = None
@@ -471,10 +560,10 @@ def load_pdfs_for_version(version: str) -> List[Document]:
         gen3_domain: Optional[str] = None
         gen3_risk_id: Optional[str] = None
         gen3_risk_level: Optional[str] = None
-        
+
         for page in pages:
             page_text = page.page_content
-            
+
             if version == "1기":
                 meta_extracted = build_gen1_page_metadata(
                     page_text, gen1_part, gen1_process
@@ -489,11 +578,7 @@ def load_pdfs_for_version(version: str) -> List[Document]:
                 gen2_item = meta_extracted["lifecycle_item"]
             elif version == "3기":
                 meta_extracted = build_gen3_page_metadata(
-                    page_text,
-                    gen3_chapter,
-                    gen3_domain,
-                    gen3_risk_id,
-                    gen3_risk_level,
+                    page_text, gen3_chapter, gen3_domain, gen3_risk_id, gen3_risk_level,
                 )
                 gen3_chapter = meta_extracted["gen3_chapter"]
                 gen3_domain = meta_extracted["overseas_domain"]
@@ -502,20 +587,13 @@ def load_pdfs_for_version(version: str) -> List[Document]:
             else:
                 meta_extracted = {
                     "structure_type": "unknown",
-                    "part": "N/A",
-                    "business_type": "N/A",
-                    "process": "N/A",
-                    "content_type": "N/A",
-                    "lifecycle_stage": "N/A",
-                    "lifecycle_item": "N/A",
-                    "gen3_chapter": "N/A",
-                    "overseas_domain": "N/A",
-                    "risk_id": "N/A",
-                    "risk_level": "N/A",
-                    "measure_type": "N/A",
-                    "procedure_type": "N/A",
+                    "part": "N/A", "business_type": "N/A", "process": "N/A",
+                    "content_type": "N/A", "lifecycle_stage": "N/A", "lifecycle_item": "N/A",
+                    "gen3_chapter": "N/A", "overseas_domain": "N/A", "risk_id": "N/A",
+                    "risk_level": "N/A", "measure_type": "N/A", "procedure_type": "N/A",
+                    "law_name": "N/A", "law_article": "N/A",
                 }
-            
+
             page.metadata.update({
                 "version": version,
                 "source_file": pdf_path.name,
@@ -526,7 +604,7 @@ def load_pdfs_for_version(version: str) -> List[Document]:
                 **meta_extracted,
             })
             documents.append(page)
-    
+
     return documents
 
 
@@ -538,8 +616,7 @@ def split_documents(documents: List[Document]) -> List[Document]:
         length_function=len,
     )
     chunks = splitter.split_documents(documents)
-    
-    # 청크 단위로 content_type / measure_type 재평가 (기수별)
+
     for chunk in chunks:
         version = chunk.metadata.get("version", "")
         if version == "1기":
@@ -558,24 +635,34 @@ def split_documents(documents: List[Document]) -> List[Document]:
             recomputed_measure = detect_gen3_measure_type(chunk.page_content)
             if recomputed_measure != "N/A":
                 chunk.metadata["measure_type"] = recomputed_measure
-    
+
     return chunks
 
 
 def load_all_guides() -> List[Document]:
     all_chunks = []
-    
+
     for version in VERSIONS:
-        print(f"\n📚 [{version}] 가이드 로딩 시작")
+        print(f"\n📚 [{version}] 로딩 시작")
         docs = load_pdfs_for_version(version)
         if not docs:
             continue
-        
-        chunks = split_documents(docs)
-        print(f"  ✅ {len(docs)}페이지 → {len(chunks)}청크 생성")
-        
-        # 검증용 통계 출력
-        if version == "1기":
+
+        if version == "법령":
+            chunks = split_law_documents(docs)
+        else:
+            chunks = split_documents(docs)
+
+        print(f"  ✅ {len(docs)}개 섹션 → {len(chunks)}청크 생성")
+
+        # 통계 출력
+        if version == "법령":
+            law_stats = {}
+            for c in chunks:
+                law = c.metadata.get("law_name", "N/A")
+                law_stats[law] = law_stats.get(law, 0) + 1
+            print(f"  📊 법령별 청크: {law_stats}")
+        elif version == "1기":
             stats = {}
             for c in chunks:
                 p = c.metadata.get("process", "N/A")
@@ -589,17 +676,12 @@ def load_all_guides() -> List[Document]:
             print(f"  📊 보안관리항목별 청크: {stats}")
         elif version == "3기":
             chapter_stats = {}
-            domain_stats = {}
             for c in chunks:
                 ch = c.metadata.get("gen3_chapter", "N/A")
                 chapter_stats[ch] = chapter_stats.get(ch, 0) + 1
-                dom = c.metadata.get("overseas_domain", "N/A")
-                if dom != "N/A":
-                    domain_stats[dom] = domain_stats.get(dom, 0) + 1
             print(f"  📊 챕터별 청크: {chapter_stats}")
-            print(f"  📊 해외사업장 영역별 청크 (Ⅴ장): {domain_stats}")
-        
+
         all_chunks.extend(chunks)
-    
+
     print(f"\n🎯 전체 청크 수: {len(all_chunks)}")
     return all_chunks
