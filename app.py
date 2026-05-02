@@ -439,7 +439,7 @@ def render_sidebar():
                 else:
                     with st.spinner("검색 중..."):
                         results = vs.similarity_search(
-                            "산업기술보호법 별첨 산업기술보호지침", k=30
+                            "산업기술보호법 제11조 국가핵심기술 수출 승인 연구개발비", k=30
                         )
                     appendix_docs = [
                         d for d in results
