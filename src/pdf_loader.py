@@ -504,7 +504,7 @@ def load_law_txt_files() -> List[Document]:
 
 
 def split_law_documents(documents: List[Document]) -> List[Document]:
-    """법령 청킹 — 조항 단위로 분리"""
+    """법령 청킹 — 제목줄만 있는 청크는 다음 청크와 병합"""
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=CHUNK_SIZE,
         chunk_overlap=100,
@@ -518,8 +518,28 @@ def split_law_documents(documents: List[Document]) -> List[Document]:
     )
     chunks = splitter.split_documents(documents)
 
-    # 청크별 법령명/조항 독립적으로 재감지
-    for chunk in chunks:
+    # 제목줄만 있는 청크는 다음 청크와 병합
+    merged = []
+    i = 0
+    while i < len(chunks):
+        chunk = chunks[i]
+        # 길이가 짧고 [법령명: 으로 시작하면 다음 청크와 병합
+        if len(chunk.page_content.strip()) < 100 and "[법령명:" in chunk.page_content:
+            if i + 1 < len(chunks):
+                next_chunk = chunks[i + 1]
+                merged_content = chunk.page_content.strip() + "\n" + next_chunk.page_content.strip()
+                merged_doc = Document(
+                    page_content=merged_content,
+                    metadata=chunk.metadata,
+                )
+                merged.append(merged_doc)
+                i += 2
+                continue
+        merged.append(chunk)
+        i += 1
+
+    # 청크별 법령명/조항 재감지
+    for chunk in merged:
         text = chunk.page_content
         detected_law = detect_law_name(text)
         detected_article = detect_law_article(text)
@@ -528,8 +548,7 @@ def split_law_documents(documents: List[Document]) -> List[Document]:
         if detected_article:
             chunk.metadata["law_article"] = detected_article
 
-    return chunks
-
+    return merged
 
 # ===========================================================================
 # 통합 PDF 로딩
