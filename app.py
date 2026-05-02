@@ -486,6 +486,9 @@ def process_question(question: str):
     with st.spinner("🔍 가이드를 검색하고 있습니다... (5~15초 소요)"):
         try:
             result = st.session_state.chain.invoke(question)
+            # 임시 디버그
+            law_docs = [d for d in result.get("source_documents", []) if d.metadata.get("version") == "법령"]
+            st.write(f"법령 청크 수: {len(law_docs)}")
             st.session_state.messages.append({
                 "role": "assistant",
                 "content": result["answer"],
