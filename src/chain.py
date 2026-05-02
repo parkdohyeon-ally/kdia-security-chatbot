@@ -1,7 +1,7 @@
 """
 RAG 체인 (1기/2기/3기 통합)
 """
-import os
+import re
 from typing import Dict, List, Any
 from langchain_groq import ChatGroq
 from langchain_core.messages import SystemMessage, HumanMessage
@@ -36,6 +36,25 @@ class SecurityGuideChain:
         classification: QueryClassification = classify_query(question)
         query_type_label = QUERY_TYPE_LABELS[classification.type]
         documents: List[Document] = retrieve(self.vectorstore, question, classification)
+
+        # 3기 Ⅲ장 절차 질문이면 법령 청크 강제 추가
+        has_gen3_proc = any(
+            d.metadata.get("gen3_chapter") == "Ⅲ_보호제도절차" for d in documents
+        )
+        if has_gen3_proc:
+            law_results = self.vectorstore.similarity_search(
+                f"{question} 산업기술보호법 제11조 국가핵심기술 수출", k=10
+            )
+            existing_ids = {id(d) for d in documents}
+            law_added = 0
+            for doc in law_results:
+                if doc.metadata.get("version") == "법령" and id(doc) not in existing_ids:
+                    documents.append(doc)
+                    existing_ids.add(id(doc))
+                    law_added += 1
+                    if law_added >= 2:
+                        break
+
         context = format_context(documents)
         system_message = SystemMessage(
             content=SYSTEM_PROMPT.format(
@@ -52,24 +71,38 @@ class SecurityGuideChain:
                 raise RuntimeError("RATE_LIMIT")
             raise
 
-        # 법령 원문 직접 추가
         answer = response.content
+
+        # 법령 원문 텍스트 생성
         law_docs = [d for d in documents if d.metadata.get("version") == "법령"]
         if law_docs:
-            law_text = "\n\n**[관련 법령 원문]** ⚖️"
+            law_text = "**[관련 법령]** ⚖️"
             added = False
             for doc in law_docs:
                 law_name = doc.metadata.get("law_name", "")
                 law_article = doc.metadata.get("law_article", "")
                 article_num = law_article.split("(")[0] if law_article else ""
                 if article_num and article_num in answer:
-                    law_text += f"\n\n「{law_name}」 {law_article}\n{doc.page_content}"
+                    clean_content = re.sub(
+                        r'\[법령명:[^\]]+\]\s*', '', doc.page_content
+                    ).strip()
+                    law_text += f"\n\n「{law_name}」 {law_article}\n{clean_content}"
                     added = True
+
             if added:
-                if "[출처]" in answer:
-                    answer = answer.replace("[출처]", law_text + "\n\n**[출처]**")
+                # LLM이 만든 [관련 법령] 섹션을 실제 원문으로 교체
+                if "[관련 법령]" in answer:
+                    answer = re.sub(
+                        r'\*{0,2}\[관련 법령\]\*{0,2}.*?(?=\*{0,2}\[출처\]|\Z)',
+                        law_text + "\n\n",
+                        answer,
+                        flags=re.DOTALL,
+                    )
                 else:
-                    answer = answer + law_text
+                    if "[출처]" in answer:
+                        answer = answer.replace("[출처]", law_text + "\n\n**[출처]**")
+                    else:
+                        answer += "\n\n" + law_text
 
         return {
             "answer": answer,
