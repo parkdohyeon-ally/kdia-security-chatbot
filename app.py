@@ -265,16 +265,16 @@ def render_sources(docs: list) -> str:
             stage = doc.metadata.get("lifecycle_stage", "?")
             item = doc.metadata.get("lifecycle_item", "?")
             label = f"2기 | {stage} · {item} | p.{p}"
+        elif v == "법령":
+            law_name = doc.metadata.get("law_name", "N/A")
+            law_article = doc.metadata.get("law_article", "N/A")
+            label = f"법령 | {law_name} {law_article} | p.{p}"
         elif v == "3기":
             domain = doc.metadata.get("overseas_domain", "N/A")
             risk_id = doc.metadata.get("risk_id", "N/A")
             risk_level = doc.metadata.get("risk_level", "N/A")
             procedure_type = doc.metadata.get("procedure_type", "N/A")
             chapter = doc.metadata.get("gen3_chapter", "?")
-        elif v == "법령":
-            law_name = doc.metadata.get("law_name", "N/A")
-            law_article = doc.metadata.get("law_article", "N/A")
-            label = f"법령 | {law_name} | {law_article} | p.{p}"
             if domain != "N/A":
                 risk_str = f" [{risk_id}/{risk_level}]" if risk_id != "N/A" else ""
                 label = f"3기 | Ⅴ장 {domain}{risk_str} | p.{p}"
@@ -285,12 +285,12 @@ def render_sources(docs: list) -> str:
         else:
             label = f"{v} | p.{p}"
         items.append(f'<div class="source-item">📄 {label}</div>')
+
     return (
         '<div class="source-section">'
         f'<div class="source-toggle">📚 참조 문서 {len(docs)}개</div>'
         + "".join(items) + "</div>"
     )
-
 
 def render_messages():
     if "last_error" in st.session_state:
