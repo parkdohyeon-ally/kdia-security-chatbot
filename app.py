@@ -271,6 +271,10 @@ def render_sources(docs: list) -> str:
             risk_level = doc.metadata.get("risk_level", "N/A")
             procedure_type = doc.metadata.get("procedure_type", "N/A")
             chapter = doc.metadata.get("gen3_chapter", "?")
+        elif v == "법령":
+            law_name = doc.metadata.get("law_name", "N/A")
+            law_article = doc.metadata.get("law_article", "N/A")
+            label = f"법령 | {law_name} | {law_article} | p.{p}"
             if domain != "N/A":
                 risk_str = f" [{risk_id}/{risk_level}]" if risk_id != "N/A" else ""
                 label = f"3기 | Ⅴ장 {domain}{risk_str} | p.{p}"
