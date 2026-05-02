@@ -292,9 +292,16 @@ def _enrich_appendix(
             if procedure == "N/A":
                 continue
             try:
-                candidates = vectorstore.similarity_search(
-                    f"{procedure} 법률 조항 산업기술보호법", k=6
-                )
+                procedure_keywords = {
+                    "수출승인": "산업기술보호법 제11조 국가핵심기술 수출 승인 연구개발비",
+                    "수출신고": "산업기술보호법 제11조 국가핵심기술 수출 신고",
+                    "해외인수합병": "산업기술보호법 제11조의2 해외인수합병 승인 신고",
+                    "사전검토": "산업기술보호법 제11조 사전검토 신청",
+                    "기술판정": "산업기술보호법 제9조 국가핵심기술 지정 판정",
+                    "침해신고": "산업기술보호법 제14조 침해행위 신고",
+                }
+                search_keyword = procedure_keywords.get(procedure, f"{procedure} 법률 조항 산업기술보호법")
+                candidates = vectorstore.similarity_search(search_keyword, k=6)
                 appendix_docs = _meta_filter(candidates, {
                     "$and": [
                         {"version": "3기"},
