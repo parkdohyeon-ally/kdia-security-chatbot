@@ -454,7 +454,7 @@ def render_sidebar():
                             ctype = doc.metadata.get("content_type", "?")
                             law = doc.metadata.get("law_name", "N/A")
                             article = doc.metadata.get("law_article", "N/A")
-                            text_preview = doc.page_content[:100].replace("\n", " ")
+                            text_preview = doc.page_content[:200].replace("\n", " ")
                             st.text(f"{i}. [{v}] p.{page} | {ctype} | {law} | {article}")
                             st.text(f"   {text_preview}")
 
