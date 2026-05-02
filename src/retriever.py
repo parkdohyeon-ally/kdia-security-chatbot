@@ -452,6 +452,12 @@ def format_context(documents: List[Document]) -> str:
                 location_info = (
                     f"📖 [3기 가이드] {chapter} | 유형: {content_type} | p.{page}"
                 )
+        elif version == "법령":
+            law_name = doc.metadata.get("law_name", "N/A")
+            law_article = doc.metadata.get("law_article", "N/A")
+            location_info = (
+                f"📖 [관련 법령] {law_name} | {law_article} | p.{page}"
+            )
         else:
             location_info = f"📖 [{version}] p.{page} | 유형: {content_type}"
 
