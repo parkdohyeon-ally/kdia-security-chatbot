@@ -273,6 +273,10 @@ def _enrich_appendix(
     enriched = list(results)
     seen_ids = {id(d) for d in results}
 
+    # 디버그: 현재 results의 버전 목록 출력
+    print(f"[DEBUG] _enrich_appendix 호출됨, results 버전: {[d.metadata.get('version') for d in results]}")
+    print(f"[DEBUG] Ⅲ장 청크 여부: {any(d.metadata.get('gen3_chapter') == 'Ⅲ_보호제도절차' for d in results)}")
+
     has_gen3_procedure = any(
         d.metadata.get("gen3_chapter") == "Ⅲ_보호제도절차"
         for d in results
