@@ -389,6 +389,11 @@ def build_gen3_page_metadata(
 # ===========================================================================
 
 def detect_law_name(text: str) -> Optional[str]:
+    # [법령명: XXX] 태그 우선 감지
+    tag_match = re.search(r"\[법령명:\s*([^\]]+)\]", text)
+    if tag_match:
+        return tag_match.group(1).strip()
+    # 태그 없으면 키워드로 감지
     for pattern, label in LAW_NAME_PATTERNS:
         if pattern.search(text):
             return label
@@ -396,6 +401,11 @@ def detect_law_name(text: str) -> Optional[str]:
 
 
 def detect_law_article(text: str) -> Optional[str]:
+    # [법령명: XXX] 태그 바로 뒤의 조항 감지
+    tag_match = re.search(r"\[법령명:[^\]]+\]\s*(제\d+조(?:의\d+)?)\s*\(([^)]+)\)", text)
+    if tag_match:
+        return f"{tag_match.group(1)}({tag_match.group(2)})"
+    # 일반 조항 패턴
     match = LAW_ARTICLE_PATTERN.search(text)
     if match:
         return f"제{match.group(1)}({match.group(2)})"
