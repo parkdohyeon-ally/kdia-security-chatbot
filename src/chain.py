@@ -3,17 +3,14 @@ RAG 체인 (1기/2기/3기 통합)
 """
 import os
 from typing import Dict, List, Any
-
 from langchain_groq import ChatGroq
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.documents import Document
-
 from config import LLM_MODEL, LLM_TEMPERATURE, GROQ_API_KEY
 from src.prompts import SYSTEM_PROMPT, HUMAN_PROMPT
 from src.query_classifier import classify_query, QueryClassification
 from src.retriever import retrieve, format_context
 from src.vectorstore import load_vectorstore
-
 
 QUERY_TYPE_LABELS = {
     "A": "유형 A - 단일 주제 질문",
@@ -23,7 +20,6 @@ QUERY_TYPE_LABELS = {
     "E": "유형 E - 가이드 외 질문",
 }
 
-
 class SecurityGuideChain:
     def __init__(self):
         print("🔧 챗봇 초기화 중...")
@@ -31,7 +27,7 @@ class SecurityGuideChain:
         self.llm = ChatGroq(
             model=LLM_MODEL,
             temperature=LLM_TEMPERATURE,
-            max_tokens=5000,
+            max_tokens=1500,
             api_key=GROQ_API_KEY,
         )
         print("✅ 초기화 완료\n")
@@ -55,28 +51,28 @@ class SecurityGuideChain:
             if any(k in err for k in ["rate", "429", "limit", "quota", "exceeded"]):
                 raise RuntimeError("RATE_LIMIT")
             raise
-        return {
-            "answer": response.content,
-            answer = response.content
-            law_docs = [d for d in documents if d.metadata.get("version") == "법령"]
-            if law_docs:
-                law_text = "\n\n**[관련 법령 원문]** ⚖️"
-                added = False
-                for doc in law_docs:
-                    law_name = doc.metadata.get("law_name", "")
-                    law_article = doc.metadata.get("law_article", "")
-                    article_num = law_article.split("(")[0] if law_article else ""
-                    if article_num and article_num in answer:
-                        law_text += f"\n\n「{law_name}」 {law_article}\n{doc.page_content}"
-                        added = True
-                if added:
-                    if "[출처]" in answer:
-                        answer = answer.replace("[출처]", law_text + "\n\n**[출처]**")
-                    else:
-                        answer = answer + law_text
 
-            return {
-                "answer": answer,
+        # 법령 원문 직접 추가
+        answer = response.content
+        law_docs = [d for d in documents if d.metadata.get("version") == "법령"]
+        if law_docs:
+            law_text = "\n\n**[관련 법령 원문]** ⚖️"
+            added = False
+            for doc in law_docs:
+                law_name = doc.metadata.get("law_name", "")
+                law_article = doc.metadata.get("law_article", "")
+                article_num = law_article.split("(")[0] if law_article else ""
+                if article_num and article_num in answer:
+                    law_text += f"\n\n「{law_name}」 {law_article}\n{doc.page_content}"
+                    added = True
+            if added:
+                if "[출처]" in answer:
+                    answer = answer.replace("[출처]", law_text + "\n\n**[출처]**")
+                else:
+                    answer = answer + law_text
+
+        return {
+            "answer": answer,
             "query_type": classification.type,
             "query_type_label": query_type_label,
             "specified_versions": classification.specified_versions,
