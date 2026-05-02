@@ -69,6 +69,16 @@ GUIDE_METADATA = {
         "content_pattern": "보안위험사례(상/중/하) → 보안관리방안(필수/선택)",
         "is_current": False,  # 3기가 현재 최신
     },
+    "법령": {
+        "full_title": "디스플레이산업 보안가이드 관련 법령 (미수록 조항 보강)",
+        "publisher": "국가법령정보센터",
+        "issued_date": "2025-10",
+        "effective_period": "2025-10 ~",
+        "scope": "산업기술보호법, 국가첨단전략산업법, 부정경쟁방지법, 근로기준법, 대외무역법, 방위사업법",
+        "structure_axis": "법령별 조항",
+        "content_pattern": "조항 원문",
+        "is_current": True,
+    },
 }
 
 VERSIONS = list(GUIDE_METADATA.keys())
