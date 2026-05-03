@@ -73,36 +73,31 @@ class SecurityGuideChain:
 
         answer = response.content
 
-        # 법령 원문 텍스트 생성
+        # 법령 원문 텍스트 생성 — 검색된 법령 청크는 조건 없이 항상 인용
         law_docs = [d for d in documents if d.metadata.get("version") == "법령"]
         if law_docs:
             law_text = "**[관련 법령]** ⚖️"
-            added = False
-            for doc in law_docs:
+            for doc in law_docs[:3]:  # 최대 3개
                 law_name = doc.metadata.get("law_name", "")
                 law_article = doc.metadata.get("law_article", "")
-                article_num = law_article.split("(")[0] if law_article else ""
-                if article_num and article_num in answer:
-                    clean_content = re.sub(
-                        r'\[법령명:[^\]]+\]\s*', '', doc.page_content
-                    ).strip()
+                clean_content = re.sub(
+                    r'\[법령명:[^\]]+\]\s*', '', doc.page_content
+                ).strip()
+                if clean_content:
                     law_text += f"\n\n「{law_name}」 {law_article}\n{clean_content}"
-                    added = True
 
-            if added:
-                # LLM이 만든 [관련 법령] 섹션을 실제 원문으로 교체
-                if "[관련 법령]" in answer:
-                    answer = re.sub(
-                        r'\*{0,2}\[관련 법령\]\*{0,2}.*?(?=\*{0,2}\[출처\]|\Z)',
-                        law_text + "\n\n",
-                        answer,
-                        flags=re.DOTALL,
-                    )
-                else:
-                    if "[출처]" in answer:
-                        answer = answer.replace("[출처]", law_text + "\n\n**[출처]**")
-                    else:
-                        answer += "\n\n" + law_text
+            # LLM이 만든 [관련 법령] 섹션을 실제 원문으로 교체, 없으면 [출처] 앞에 삽입
+            if "[관련 법령]" in answer:
+                answer = re.sub(
+                    r'\*{0,2}\[관련 법령\]\*{0,2}.*?(?=\*{0,2}\[출처\]|\Z)',
+                    law_text + "\n\n",
+                    answer,
+                    flags=re.DOTALL,
+                )
+            elif "[출처]" in answer:
+                answer = answer.replace("[출처]", law_text + "\n\n**[출처]**")
+            else:
+                answer += "\n\n" + law_text
 
         return {
             "answer": answer,
@@ -120,3 +115,4 @@ class SecurityGuideChain:
             "procedure_type": classification.procedure_type,
             "source_documents": documents,
         }
+
