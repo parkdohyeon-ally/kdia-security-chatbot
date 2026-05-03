@@ -233,3 +233,4 @@ def classify_query(question: str) -> QueryClassification:
             classification.procedure_type = proc
 
     return classification
+
