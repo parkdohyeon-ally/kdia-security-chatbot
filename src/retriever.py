@@ -273,10 +273,6 @@ def _enrich_appendix(
     enriched = list(results)
     seen_ids = {id(d) for d in results}
 
-    # 디버그: 현재 results의 버전 목록 출력
-    print(f"[DEBUG] _enrich_appendix 호출됨, results 버전: {[d.metadata.get('version') for d in results]}")
-    print(f"[DEBUG] Ⅲ장 청크 여부: {any(d.metadata.get('gen3_chapter') == 'Ⅲ_보호제도절차' for d in results)}")
-
     has_gen3_procedure = any(
         d.metadata.get("gen3_chapter") == "Ⅲ_보호제도절차"
         for d in results
@@ -440,7 +436,6 @@ def format_context(documents: List[Document]) -> str:
     for i, doc in enumerate(documents, 1):
         version = doc.metadata.get("version", "N/A")
         page = doc.metadata.get("page", "N/A")
-        source_file = doc.metadata.get("source_file", "N/A")
         content_type = doc.metadata.get("content_type", "N/A")
 
         if version == "1기":
@@ -493,10 +488,8 @@ def format_context(documents: List[Document]) -> str:
             location_info = f"📖 [{version}] p.{page} | 유형: {content_type}"
 
         chunk_text = (
-            f"--- [청크 {i}] ---\n"
-            f"{location_info}\n"
-            f"파일: {source_file}\n"
-            f"내용:\n{doc.page_content}\n"
+            f"[{i}] {location_info}\n"
+            f"{doc.page_content}\n"
         )
         formatted.append(chunk_text)
 
