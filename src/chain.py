@@ -38,13 +38,20 @@ class SecurityGuideChain:
         documents: List[Document] = retrieve(self.vectorstore, question, classification)
 
         # 3기 Ⅲ장 절차 질문이면 법령 청크 강제 추가
-        has_gen3_proc = any(
-            d.metadata.get("gen3_chapter") == "Ⅲ_보호제도절차" for d in documents
+        # — 문서 메타데이터가 잘못 태깅된 경우도 커버하기 위해 분류기 결과를 우선 사용
+        has_gen3_proc = (
+            classification.gen3_chapter == "Ⅲ_보호제도절차"
+            or classification.procedure_type != "미지정"
+            or any(d.metadata.get("gen3_chapter") == "Ⅲ_보호제도절차" for d in documents)
         )
         if has_gen3_proc:
-            law_results = self.vectorstore.similarity_search(
-                f"{question} 산업기술보호법 제11조 국가핵심기술 수출", k=50
+            proc = classification.procedure_type
+            search_q = (
+                f"{proc} 산업기술보호법 국가핵심기술 수출 {question}"
+                if proc != "미지정"
+                else f"{question} 산업기술보호법 제11조 국가핵심기술 수출"
             )
+            law_results = self.vectorstore.similarity_search(search_q, k=50)
             seen_page_contents = {d.page_content for d in documents}
             law_added = 0
             for doc in law_results:
@@ -73,31 +80,25 @@ class SecurityGuideChain:
 
         answer = response.content
 
-        # 법령 원문 텍스트 생성 — 검색된 법령 청크는 조건 없이 항상 인용
+        # LLM이 [관련 법령] 섹션을 쓴 경우 제거 (원문으로 대체할 것)
+        answer = re.sub(
+            r'\*{0,2}\[관련 법령\]\*{0,2}[^\n]*\n?', '', answer
+        ).rstrip()
+
+        # 검색된 법령 청크를 답변 끝에 무조건 추가
         law_docs = [d for d in documents if d.metadata.get("version") == "법령"]
         if law_docs:
-            law_text = "**[관련 법령]** ⚖️"
-            for doc in law_docs[:3]:  # 최대 3개
+            law_parts = []
+            for doc in law_docs[:3]:
                 law_name = doc.metadata.get("law_name", "")
                 law_article = doc.metadata.get("law_article", "")
                 clean_content = re.sub(
                     r'\[법령명:[^\]]+\]\s*', '', doc.page_content
                 ).strip()
                 if clean_content:
-                    law_text += f"\n\n「{law_name}」 {law_article}\n{clean_content}"
-
-            # LLM이 만든 [관련 법령] 섹션을 실제 원문으로 교체, 없으면 [출처] 앞에 삽입
-            if "[관련 법령]" in answer:
-                answer = re.sub(
-                    r'\*{0,2}\[관련 법령\]\*{0,2}.*?(?=\*{0,2}\[출처\]|\Z)',
-                    law_text + "\n\n",
-                    answer,
-                    flags=re.DOTALL,
-                )
-            elif "[출처]" in answer:
-                answer = answer.replace("[출처]", law_text + "\n\n**[출처]**")
-            else:
-                answer += "\n\n" + law_text
+                    law_parts.append(f"「{law_name}」 {law_article}\n{clean_content}")
+            if law_parts:
+                answer += "\n\n**[관련 법령]** ⚖️\n\n" + "\n\n---\n\n".join(law_parts)
 
         return {
             "answer": answer,
@@ -115,4 +116,3 @@ class SecurityGuideChain:
             "procedure_type": classification.procedure_type,
             "source_documents": documents,
         }
-
