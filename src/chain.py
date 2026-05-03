@@ -95,6 +95,8 @@ class SecurityGuideChain:
                 clean_content = re.sub(
                     r'\[법령명:[^\]]+\]\s*', '', doc.page_content
                 ).strip()
+                # <개정>, <신설> 등이 HTML 태그로 파싱되는 것 방지
+                clean_content = clean_content.replace('<', '&lt;').replace('>', '&gt;')
                 if clean_content:
                     law_parts.append(f"「{law_name}」 {law_article}\n{clean_content}")
             if law_parts:
