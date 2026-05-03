@@ -271,7 +271,7 @@ def _enrich_appendix(
     vectorstore: FAISS, results: List[Document]
 ) -> List[Document]:
     enriched = list(results)
-    seen_ids = {id(d) for d in results}
+    seen_contents = {d.page_content for d in results}
 
     has_gen3_procedure = any(
         d.metadata.get("gen3_chapter") == "Ⅲ_보호제도절차"
@@ -306,7 +306,7 @@ def _enrich_appendix(
                 search_keyword = procedure_keywords.get(
                     procedure, f"{procedure} 법률 조항 산업기술보호법"
                 )
-                candidates = vectorstore.similarity_search(search_keyword, k=10)
+                candidates = vectorstore.similarity_search(search_keyword, k=50)
 
                 # 법령 청크 우선
                 law_docs = _meta_filter(candidates, {
@@ -314,11 +314,11 @@ def _enrich_appendix(
                         {"version": "법령"},
                         {"content_type": "법령조항"},
                     ]
-                })[:2]
+                })[:3]
                 for a in law_docs:
-                    if id(a) not in seen_ids:
+                    if a.page_content not in seen_contents:
                         enriched.append(a)
-                        seen_ids.add(id(a))
+                        seen_contents.add(a.page_content)
 
                 # 3기 별첨도 추가
                 appendix_docs = _meta_filter(candidates, {
@@ -328,9 +328,9 @@ def _enrich_appendix(
                     ]
                 })[:1]
                 for a in appendix_docs:
-                    if id(a) not in seen_ids:
+                    if a.page_content not in seen_contents:
                         enriched.append(a)
-                        seen_ids.add(id(a))
+                        seen_contents.add(a.page_content)
 
             except Exception:
                 continue
@@ -355,9 +355,9 @@ def _enrich_appendix(
                     ]
                 })[:1]
                 for a in appendix_docs:
-                    if id(a) not in seen_ids:
+                    if a.page_content not in seen_contents:
                         enriched.append(a)
-                        seen_ids.add(id(a))
+                        seen_contents.add(a.page_content)
             except Exception:
                 continue
 
