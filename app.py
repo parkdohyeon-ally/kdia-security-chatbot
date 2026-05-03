@@ -323,6 +323,19 @@ def render_messages():
                 </div>''',
                 unsafe_allow_html=True,
             )
+            law_docs_for_msg = [
+                d for d in result.get("source_documents", [])
+                if d.metadata.get("version") == "법령"
+            ]
+            if law_docs_for_msg:
+                with st.expander("⚖️ 관련 법령 원문"):
+                    for doc in law_docs_for_msg[:3]:
+                        law_name = doc.metadata.get("law_name", "")
+                        law_article = doc.metadata.get("law_article", "")
+                        content = re.sub(r'\[법령명:[^\]]+\]\s*', '', doc.page_content).strip()
+                        st.markdown(f"**「{law_name}」 {law_article}**")
+                        st.text(content)
+                        st.markdown("---")
 
 
 def render_sidebar():
