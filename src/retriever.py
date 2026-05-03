@@ -66,8 +66,16 @@ def _meta_filter(docs: List[Document], filter_dict: Dict) -> List[Document]:
 
 
 def _build_filter(classification: QueryClassification) -> Optional[Dict]:
-    conditions = []
+    # procedure_type 감지 시 다른 신호보다 우선 — 3기 Ⅲ장으로 고정
+    if classification.procedure_type != "미지정":
+        conds: List[Dict] = [
+            {"version": "3기"},
+            {"gen3_chapter": "Ⅲ_보호제도절차"},
+            {"procedure_type": classification.procedure_type},
+        ]
+        return {"$and": conds}
 
+    conditions = []
     gen1_signal = _has_gen1_signal(classification)
     gen2_signal = _has_gen2_signal(classification)
     gen3_signal = _has_gen3_signal(classification)
@@ -94,8 +102,6 @@ def _build_filter(classification: QueryClassification) -> Optional[Dict]:
             conditions.append({"gen3_chapter": classification.gen3_chapter})
         if classification.overseas_domain != "미지정":
             conditions.append({"overseas_domain": classification.overseas_domain})
-        if classification.procedure_type != "미지정":
-            conditions.append({"procedure_type": classification.procedure_type})
         if classification.measure_type != "미지정":
             conditions.append({
                 "measure_type": {"$in": [classification.measure_type, "필수와선택"]}
