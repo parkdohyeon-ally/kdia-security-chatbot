@@ -43,16 +43,16 @@ class SecurityGuideChain:
         )
         if has_gen3_proc:
             law_results = self.vectorstore.similarity_search(
-                f"{question} 산업기술보호법 제11조 국가핵심기술 수출", k=10
+                f"{question} 산업기술보호법 제11조 국가핵심기술 수출", k=50
             )
-            existing_ids = {id(d) for d in documents}
+            seen_page_contents = {d.page_content for d in documents}
             law_added = 0
             for doc in law_results:
-                if doc.metadata.get("version") == "법령" and id(doc) not in existing_ids:
+                if doc.metadata.get("version") == "법령" and doc.page_content not in seen_page_contents:
                     documents.append(doc)
-                    existing_ids.add(id(doc))
+                    seen_page_contents.add(doc.page_content)
                     law_added += 1
-                    if law_added >= 2:
+                    if law_added >= 3:
                         break
 
         context = format_context(documents)
