@@ -27,7 +27,7 @@ class SecurityGuideChain:
         self.llm = ChatGroq(
             model=LLM_MODEL,
             temperature=LLM_TEMPERATURE,
-            max_tokens=2000,
+            max_tokens=1200,
             api_key=GROQ_API_KEY,
         )
         print("✅ 초기화 완료\n")
@@ -44,12 +44,18 @@ class SecurityGuideChain:
             or classification.procedure_type != "미지정"
             or any(d.metadata.get("gen3_chapter") == "Ⅲ_보호제도절차" for d in documents)
         )
+        _PROC_LAW_QUERIES = {
+            "수출승인":   "산업기술보호법 제11조 국가핵심기술 수출 승인 연구개발비",
+            "수출신고":   "산업기술보호법 제11조 국가핵심기술 수출 신고",
+            "해외인수합병": "산업기술보호법 제11조의2 해외인수합병 승인 신고",
+            "사전검토":   "산업기술보호법 제11조 사전검토",
+            "기술판정":   "산업기술보호법 제9조 국가핵심기술 판정",
+            "침해신고":   "산업기술보호법 제14조 침해행위 신고",
+        }
         if has_gen3_proc:
             proc = classification.procedure_type
-            search_q = (
-                f"{proc} 산업기술보호법 국가핵심기술 수출 {question}"
-                if proc != "미지정"
-                else f"{question} 산업기술보호법 제11조 국가핵심기술 수출"
+            search_q = _PROC_LAW_QUERIES.get(
+                proc, "산업기술보호법 제11조 국가핵심기술 수출"
             )
             law_results = self.vectorstore.similarity_search(search_q, k=50)
             seen_page_contents = {d.page_content for d in documents}
