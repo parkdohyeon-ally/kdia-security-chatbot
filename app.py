@@ -347,15 +347,15 @@ def render_sidebar():
         </div>
         """, unsafe_allow_html=True)
         try:
-            with open("data/pdfs/1기/[1기] 디스플레이산업 실무보안가이드_FN.pdf", "rb") as f:
-                st.download_button(
-                    label="📥 1기 가이드 다운로드",
-                    data=f,
-                    file_name="1기_디스플레이산업_실무보안가이드.pdf",
-                    mime="application/pdf",
-                    use_container_width=True,
-                    key="dl_1",
-                )
+            pdf1 = open("data/pdfs/1기/[1기] 디스플레이산업 실무보안가이드_FN.pdf", "rb").read()
+            st.download_button(
+                label="📥 1기 가이드 다운로드",
+                data=pdf1,
+                file_name="1기_디스플레이산업_실무보안가이드.pdf",
+                mime="application/pdf",
+                use_container_width=True,
+                key="pdf_dl_gen1",
+            )
         except FileNotFoundError:
             st.caption("⚠️ 1기 PDF 파일 없음")
 
@@ -368,15 +368,15 @@ def render_sidebar():
         </div>
         """, unsafe_allow_html=True)
         try:
-            with open("data/pdfs/2기/[2기] 디스플레이산업 핵심인력보안가이드_FN.pdf", "rb") as f:
-                st.download_button(
-                    label="📥 2기 가이드 다운로드",
-                    data=f,
-                    file_name="2기_디스플레이산업_핵심인력보안가이드.pdf",
-                    mime="application/pdf",
-                    use_container_width=True,
-                    key="dl_2",
-                )
+            pdf2 = open("data/pdfs/2기/[2기] 디스플레이산업 핵심인력보안가이드_FN.pdf", "rb").read()
+            st.download_button(
+                label="📥 2기 가이드 다운로드",
+                data=pdf2,
+                file_name="2기_디스플레이산업_핵심인력보안가이드.pdf",
+                mime="application/pdf",
+                use_container_width=True,
+                key="pdf_dl_gen2",
+            )
         except FileNotFoundError:
             st.caption("⚠️ 2기 PDF 파일 없음")
 
@@ -389,15 +389,15 @@ def render_sidebar():
         </div>
         """, unsafe_allow_html=True)
         try:
-            with open("data/pdfs/3기/[3기] 디스플레이산업 수출보안가이드_FN.pdf", "rb") as f:
-                st.download_button(
-                    label="📥 3기 가이드 다운로드",
-                    data=f,
-                    file_name="3기_디스플레이산업_수출보안가이드.pdf",
-                    mime="application/pdf",
-                    use_container_width=True,
-                    key="dl_3",
-                )
+            pdf3 = open("data/pdfs/3기/[3기] 디스플레이산업 수출보안가이드_FN.pdf", "rb").read()
+            st.download_button(
+                label="📥 3기 가이드 다운로드",
+                data=pdf3,
+                file_name="3기_디스플레이산업_수출보안가이드.pdf",
+                mime="application/pdf",
+                use_container_width=True,
+                key="pdf_dl_gen3",
+            )
         except FileNotFoundError:
             st.caption("⚠️ 3기 PDF 파일 없음")
 
@@ -570,9 +570,6 @@ def main():
     if user_input := st.chat_input("디스플레이산업 보안에 대해 질문해주세요..."):
         process_question(user_input)
 
-
-if __name__ == "__main__":
-    main()
 
 if __name__ == "__main__":
     main()
