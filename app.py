@@ -432,6 +432,48 @@ def render_sidebar():
 # ── 관리자 진단 (사이드바 안에 위치) ──
         st.markdown("---")
         with st.expander("🔧 관리자 진단"):
+            # 법령 청크 수 확인
+            if st.button("법령 청크 수 확인", key="check_law_count"):
+                vs = st.session_state.chain.vectorstore if st.session_state.chain else None
+                if not vs:
+                    st.warning("챗봇이 초기화되지 않았습니다.")
+                else:
+                    with st.spinner("전체 법령 청크 집계 중..."):
+                        results = vs.similarity_search("산업기술보호법 국가핵심기술 수출", k=50)
+                    law_docs = [d for d in results if d.metadata.get("version") == "법령"]
+                    st.markdown(f"**법령 버전 청크 수 (상위 50개 중):** {len(law_docs)}개")
+                    if law_docs:
+                        for i, doc in enumerate(law_docs[:5], 1):
+                            law = doc.metadata.get("law_name", "N/A")
+                            article = doc.metadata.get("law_article", "N/A")
+                            st.text(f"{i}. {law} | {article}")
+                            st.text(f"   {doc.page_content[:200].replace(chr(10), ' ')}")
+                    else:
+                        st.error("❌ 법령 청크가 없습니다. 벡터스토어를 재구축하세요.")
+
+            st.markdown("---")
+
+            # 벡터스토어 강제 재구축
+            if st.button("🔄 벡터스토어 재구축 (법령 포함)", key="rebuild_vs"):
+                import shutil
+                from config import VECTORSTORE_DIR
+                vs_path = Path(VECTORSTORE_DIR)
+                if vs_path.exists():
+                    shutil.rmtree(vs_path)
+                with st.spinner("재구축 중... (3~5분 소요)"):
+                    from src.pdf_loader import load_all_guides
+                    from src.vectorstore import build_vectorstore
+                    chunks = load_all_guides()
+                    law_chunks = [c for c in chunks if c.metadata.get("version") == "법령"]
+                    st.info(f"법령 청크: {len(law_chunks)}개 포함")
+                    build_vectorstore(chunks)
+                    st.session_state.chain = None
+                st.success("✅ 재구축 완료! 페이지를 새로고침하세요.")
+                st.rerun()
+
+            st.markdown("---")
+
+            # 기존 별첨 청크 확인
             if st.button("별첨 청크 확인", key="check_appendix"):
                 vs = st.session_state.chain.vectorstore if st.session_state.chain else None
                 if not vs:
