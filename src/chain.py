@@ -86,27 +86,10 @@ class SecurityGuideChain:
 
         answer = response.content
 
-        # LLM이 [관련 법령] 섹션을 쓴 경우 제거 (원문으로 대체할 것)
+        # LLM이 [관련 법령] 섹션을 직접 쓴 경우 제거 (app.py에서 별도 렌더링)
         answer = re.sub(
             r'\*{0,2}\[관련 법령\]\*{0,2}[^\n]*\n?', '', answer
         ).rstrip()
-
-        # 검색된 법령 청크를 답변 끝에 무조건 추가
-        law_docs = [d for d in documents if d.metadata.get("version") == "법령"]
-        if law_docs:
-            law_parts = []
-            for doc in law_docs[:3]:
-                law_name = doc.metadata.get("law_name", "")
-                law_article = doc.metadata.get("law_article", "")
-                clean_content = re.sub(
-                    r'\[법령명:[^\]]+\]\s*', '', doc.page_content
-                ).strip()
-                # <개정>, <신설> 등이 HTML 태그로 파싱되는 것 방지
-                clean_content = clean_content.replace('<', '&lt;').replace('>', '&gt;')
-                if clean_content:
-                    law_parts.append(f"「{law_name}」 {law_article}\n{clean_content}")
-            if law_parts:
-                answer += "\n\n**[관련 법령]** ⚖️\n\n" + "\n\n---\n\n".join(law_parts)
 
         return {
             "answer": answer,
